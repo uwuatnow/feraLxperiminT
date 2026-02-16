@@ -8,14 +8,14 @@
             "environment": [
                 {
                     "name": "PATH",
-                    "value": "${workspaceFolder}/mingw32/bin"
+                    "value": "${workspaceFolder}/mingw32/bin/"
                 }
             ],
             "program": "${workspaceFolder}/build/feraL_xperiminT.exe",
             "cwd": "${workspaceFolder}",
             "args": [],
             "stopAtEntry": false,
-            "externalConsole": false,
+            "externalConsole": true,
             "MIMode": "gdb",
             "miDebuggerPath": "${workspaceFolder}/mingw32/bin/gdb.exe",
             "targetArchitecture": "x86",
