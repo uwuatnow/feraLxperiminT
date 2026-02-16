@@ -1,0 +1,16 @@
+{
+    "configurations": [
+        {
+            "name": "conf",
+            "includePath": [
+                "${workspaceFolder}/include",
+                "${workspaceFolder}/src",
+                "C:\\mingw64\\x86_64-w64-mingw32\\include"
+            ],
+            "defines": [
+                "DEBUG=1"
+            ]
+        }
+    ],
+    "version": 4
+}
