@@ -58,13 +58,18 @@ void Entity::resolveCollisionWith(Entity* e)
 	if ((flags & EntFlag_UnderAllOtherEnts) || (e->flags & EntFlag_UnderAllOtherEnts)) return;
 	if (dynamic_cast<BulletProjectile*>(this) || dynamic_cast<BulletProjectile*>(e)) return;
 	
-	// Skip collision between cars and building walls - handled separately in CarBase::update()
-	if ((dynamic_cast<CarBase*>(this) && dynamic_cast<BuildingWallEntity*>(e)) ||
-	    (dynamic_cast<BuildingWallEntity*>(this) && dynamic_cast<CarBase*>(e))) {
-	    return;
-	}
+    // Skip collision between cars and building walls - handled separately in CarBase::update()
+    if ((dynamic_cast<CarBase*>(this) && dynamic_cast<BuildingWallEntity*>(e)) ||
+        (dynamic_cast<BuildingWallEntity*>(this) && dynamic_cast<CarBase*>(e))) {
+        return;
+    }
 
-	OBB* thisOBB = getOBB();
+    // Skip collision between building walls - walls should not affect each other's physics
+    if (dynamic_cast<BuildingWallEntity*>(this) && dynamic_cast<BuildingWallEntity*>(e)) {
+        return;
+    }
+
+    OBB* thisOBB = getOBB();
 	OBB* otherOBB = e->getOBB();
 	Point mtv;
 	
