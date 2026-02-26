@@ -37,7 +37,7 @@ public:
     static constexpr float MAX_SHADOW_DISTANCE_TILES = 20.0f;
     static constexpr int MAX_SHADOWS_PER_ACTOR = 4;
     static constexpr float ACTOR_HEIGHT = 1.8f;  // Approximate actor height in world units
-    static constexpr float GROUND_OFFSET = 0.02f; // Slightly above ground to avoid z-fighting
+    static constexpr float GROUND_OFFSET = 0.08f; // Slightly above ground to avoid z-fighting and render over roads
     
     // Sun shadow constants
     static constexpr float SUN_SHADOW_MIN_LENGTH = 0.6f;   // Shortest shadow (noon)

@@ -59,6 +59,11 @@ void New3DRenderer::renderActorShadows(Map* map, RendTarget& target)
             float alpha = baseAlpha * radiusScale;
             if (alpha < 0.05f) alpha = 0.05f;
             
+            // Offset foot shadow based on height (use slight downward/forward direction)
+            // This simulates sun coming from a typical angle
+            float offsetX = jumpHeight * 0.5f;  // Slight forward offset
+            float offsetZ = jumpHeight * 0.3f;  // Slight downward/toward camera
+            
             float groundY = ActorShadow::GROUND_OFFSET;
             
             // Draw untextured circle using white texture
@@ -67,15 +72,15 @@ void New3DRenderer::renderActorShadows(Map* map, RendTarget& target)
             
             const int segments = 16;
             glBegin(GL_TRIANGLE_FAN);
-            // Center of circle
+            // Center of circle (with height offset)
             glTexCoord2f(0.5f, 0.5f);
-            glVertex3f(centerX, groundY, centerZ);
+            glVertex3f(centerX + offsetX, groundY, centerZ + offsetZ);
             for (int s = 0; s <= segments; ++s) {
                 float angle = s * 3.14159f * 2.0f / (float)segments;
                 float cx = std::cos(angle) * radius;
                 float cz = std::sin(angle) * radius * 0.5f; // Squish Z for perspective
                 glTexCoord2f(0.5f + std::cos(angle) * 0.5f, 0.5f + std::sin(angle) * 0.5f);
-                glVertex3f(centerX + cx, groundY, centerZ + cz);
+                glVertex3f(centerX + offsetX + cx, groundY, centerZ + offsetZ + cz);
             }
             glEnd();
         }
@@ -92,7 +97,14 @@ void New3DRenderer::renderActorShadows(Map* map, RendTarget& target)
         for (int i = 0; i < shadowCount; ++i) {
             const ActorShadowData& shadow = shadows[i];
             
-            // Shadow base position: at actor's feet on the ground, centered on actor
+            // Get actor height in world units
+            float actorHeight = (float)(actor->posZ / 16.0);
+            
+            // Shadow base position: offset from actor's feet based on height
+            // Higher actors cast shadows further away (sun rays are parallel)
+            float heightOffsetX = shadow.dirX * actorHeight * 0.8f;
+            float heightOffsetZ = shadow.dirZ * actorHeight * 0.8f;
+            
             float groundY = ActorShadow::GROUND_OFFSET;
             
             // Shadow stretches in the given direction
@@ -106,16 +118,16 @@ void New3DRenderer::renderActorShadows(Map* map, RendTarget& target)
             float halfW = width * 0.5f;
             
             // Four corners of shadow quad on the ground
-            // Near-left, Near-right (at actor's feet)
-            float x1 = centerX - perpX * halfW;
-            float z1 = centerZ - perpZ * halfW;
-            float x2 = centerX + perpX * halfW;
-            float z2 = centerZ + perpZ * halfW;
+            // Near-left, Near-right (offset from actor's feet based on height)
+            float x1 = centerX + heightOffsetX - perpX * halfW;
+            float z1 = centerZ + heightOffsetZ - perpZ * halfW;
+            float x2 = centerX + heightOffsetX + perpX * halfW;
+            float z2 = centerZ + heightOffsetZ + perpZ * halfW;
             // Far-left, Far-right (shadow tip)
-            float x3 = centerX + stretchX + perpX * halfW;
-            float z3 = centerZ + stretchZ + perpZ * halfW;
-            float x4 = centerX + stretchX - perpX * halfW;
-            float z4 = centerZ + stretchZ - perpZ * halfW;
+            float x3 = centerX + heightOffsetX + stretchX + perpX * halfW;
+            float z3 = centerZ + heightOffsetZ + stretchZ + perpZ * halfW;
+            float x4 = centerX + heightOffsetX + stretchX - perpX * halfW;
+            float z4 = centerZ + heightOffsetZ + stretchZ - perpZ * halfW;
             
             // Use the sprite row and flip calculated based on shadow direction
             unsigned int row = shadow.spriteRow;
