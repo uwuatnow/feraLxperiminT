@@ -109,7 +109,7 @@
 int main()
 {
     //testFLCLibrary();
-    nyaa::Util::PrintLnFormat("Starting Game...");
+    nyaa::Util::PrintLnFormat("|starting nyaa engine 2026|");
     nyaa::Game g{};
     return 0;
 }
