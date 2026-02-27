@@ -177,10 +177,6 @@ void Camera::update(float deltaTime)
     }
 
     if (lastCamZoom != IGS->camZoom) {
-        posX = effectivePlayerX;
-        posY = effectivePlayerY;
-        cameraTargetPosX = effectivePlayerX;
-        cameraTargetPosY = effectivePlayerY;
         lastCamZoom = IGS->camZoom;
     }
 

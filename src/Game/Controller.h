@@ -29,6 +29,10 @@ public:
 	static unsigned int dpxFrames;
 	static unsigned int dpyFrames;
 
+	//right stick
+	static float rsX;
+	static float rsY;
+
 	static std::map<Btn, float> HeldMillis; //controller button milliseconds held for
 	static std::map<Btn, unsigned int> BtnFrames; //amount of frames a controller button was held for
 	static std::map<Btn, bool> BtnRel; //true if controller button was released

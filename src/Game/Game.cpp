@@ -469,8 +469,7 @@ void Game::doEvents()
 			if (IGS && guip_eof == IGS)
 			{
 				IGS->camZoom += e.mouseWheelScroll.delta * 2;
-				IGS->initialCam = true;
-				IGS->camZoom = Util::Clamp(IGS->camZoom, 1.0, 8);
+				IGS->camZoom = Util::Clamp(IGS->camZoom, 1.0f, 8.0f);
 			}
 		}
 		if (type == sf::Event::TextEntered && winFocused)
@@ -517,6 +516,17 @@ void Game::doLoop()
 		Mouse::Pos_Y = Util::ScaleClamped(sfmp.y, 0, sfws.y, 0, Game::ScreenHeight);
 		
 		doEvents();
+		
+		if (IGS && guip_eof == IGS && inMethod == InputMethod_Controller)
+		{
+			// Right stick vertical zoom
+			if (std::abs(Controller::rsY) > 20.0f)
+			{
+				float zoomStep = (Controller::rsY / 100.0f) * frameDeltaMillis * 0.005f;
+				IGS->camZoom -= zoomStep;
+				IGS->camZoom = Util::Clamp(IGS->camZoom, 1.0f, 8.0f);
+			}
+		}
 
 		if (winResized)
 		{
@@ -707,8 +717,10 @@ void Game::doLoop()
 
 		KeysHeldClock.restart();
 
-		Controller::dpx = sf::Joystick::getAxisPosition(0, sf::Joystick::Axis::PovX);
-		Controller::dpy = sf::Joystick::getAxisPosition(0, sf::Joystick::Axis::PovY);
+		Controller::dpx = sf::Joystick::getAxisPosition(G->joystickIndex, sf::Joystick::Axis::PovX);
+		Controller::dpy = sf::Joystick::getAxisPosition(G->joystickIndex, sf::Joystick::Axis::PovY);
+		Controller::rsX = sf::Joystick::getAxisPosition(G->joystickIndex, sf::Joystick::Axis::U);
+		Controller::rsY = sf::Joystick::getAxisPosition(G->joystickIndex, sf::Joystick::Axis::V);
 		if(Controller::dpx != 0)
 		{
 			Controller::dpxFrames++;
