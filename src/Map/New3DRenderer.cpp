@@ -52,10 +52,11 @@ New3DRenderer::New3DRenderer()
     ,fractalManager(new DrugEffectsManager())
     ,depthPerceptionManager(new DrugEffectsManager())
     ,dissolveManager(new DrugEffectsManager())
-    ,rgbDeconvergenceManager(new DrugEffectsManager())
-    ,radialBlurManager(new DrugEffectsManager())
-    ,bloomManager(new DrugEffectsManager())
-    ,fullbrightEnabled(false)
+	,rgbDeconvergenceManager(new DrugEffectsManager())
+	,radialBlurManager(new DrugEffectsManager())
+	,bloomManager(new DrugEffectsManager())
+	,columnSplitManager(new DrugEffectsManager())
+	,fullbrightEnabled(false)
 {
     glUseProgram = (PFNGLUSEPROGRAMPROC)(void(*)())wglGetProcAddress("glUseProgram");
     
@@ -85,9 +86,10 @@ New3DRenderer::~New3DRenderer()
     delete fractalManager;
     delete depthPerceptionManager;
     delete dissolveManager;
-    delete rgbDeconvergenceManager;
-    delete radialBlurManager;
-    delete bloomManager;
+	delete rgbDeconvergenceManager;
+	delete radialBlurManager;
+	delete bloomManager;
+	delete columnSplitManager;
 }
 
 void New3DRenderer::render(Map* map, RendTarget& target)
@@ -108,11 +110,12 @@ void New3DRenderer::render(Map* map, RendTarget& target)
     fractalManager->update(deltaTime);
     depthPerceptionManager->update(deltaTime);
     dissolveManager->update(deltaTime);
-    rgbDeconvergenceManager->update(deltaTime);
-    radialBlurManager->update(deltaTime);
-    bloomManager->update(deltaTime);
-    
-    if (m_new3DMainShader) {
+	rgbDeconvergenceManager->update(deltaTime);
+	radialBlurManager->update(deltaTime);
+	bloomManager->update(deltaTime);
+	columnSplitManager->update(deltaTime);
+
+	if (m_new3DMainShader) {
         m_new3DMainShader->setTime(shaderClock.getElapsedSeconds());
         m_new3DMainShader->setDrugEffect(wavyWorldManager->getCurrentEffect());
         m_new3DMainShader->setWorldVibration(worldVibrationManager->getCurrentEffect());
@@ -583,7 +586,12 @@ void New3DRenderer::addRadialBlurEffect(float effectValue, float durationSeconds
 
 void New3DRenderer::addBloomEffect(float effectValue, float durationSeconds)
 {
-    bloomManager->addEffect(effectValue, durationSeconds);
+	bloomManager->addEffect(effectValue, durationSeconds);
+}
+
+void New3DRenderer::addColumnSplitEffect(float effectValue, float durationSeconds)
+{
+	columnSplitManager->addEffect(effectValue, durationSeconds);
 }
 
 // Getter methods for accessing current effect values
@@ -659,7 +667,12 @@ float New3DRenderer::getCurrentRadialBlurEffect() const
 
 float New3DRenderer::getCurrentBloomEffect() const
 {
-    return bloomManager ? bloomManager->getCurrentEffect() : 0.0f;
+	return bloomManager ? bloomManager->getCurrentEffect() : 0.0f;
+}
+
+float New3DRenderer::getCurrentColumnSplitEffect() const
+{
+	return columnSplitManager ? columnSplitManager->getCurrentEffect() : 0.0f;
 }
 
 // Getter methods for accessing current tolerance values
@@ -735,7 +748,12 @@ float New3DRenderer::getCurrentRadialBlurTolerance() const
 
 float New3DRenderer::getCurrentBloomTolerance() const
 {
-    return bloomManager ? bloomManager->getCurrentTolerance() : 0.0f;
+	return bloomManager ? bloomManager->getCurrentTolerance() : 0.0f;
+}
+
+float New3DRenderer::getCurrentColumnSplitTolerance() const
+{
+	return columnSplitManager ? columnSplitManager->getCurrentTolerance() : 0.0f;
 }
 
 void New3DRenderer::updateMouseRaycast(Map* map, RendTarget& target)

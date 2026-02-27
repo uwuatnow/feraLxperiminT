@@ -99,12 +99,16 @@ void DrugTrip::update()
                     renderer3D->addNoiseEffect(interpolatedEffect.visualNoise, effectDuration);
                 }
                 
-                if (interpolatedEffect.visualGreyscale > 0.0f) {
-                    renderer3D->addGreyscaleEffect(interpolatedEffect.visualGreyscale, effectDuration);
-                }
-            }
-        }
-    }
+			if (interpolatedEffect.visualGreyscale > 0.0f) {
+					renderer3D->addGreyscaleEffect(interpolatedEffect.visualGreyscale, effectDuration);
+				}
+
+				if (interpolatedEffect.visualColumnSplit > 0.0f) {
+					renderer3D->addColumnSplitEffect(interpolatedEffect.visualColumnSplit, effectDuration);
+				}
+			}
+		}
+	}
 
     if(tripTimer->once(lengthSecs * 1000.0f))
     {

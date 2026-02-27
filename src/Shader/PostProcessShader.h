@@ -12,15 +12,17 @@ public:
     void setBloomIntensity(float intensity);
     void setTime(float time);
     void setResolution(float resolutionX, float resolutionY);
-    void setRgbDeconvergenceEffect(float effect);
-    void setRadialBlurEffect(float effect);
+	void setRgbDeconvergenceEffect(float effect);
+	void setRadialBlurEffect(float effect);
+	void setColumnSplitEffect(float effect);
 
 private:
-    float m_bloomIntensity;
-    float m_time;
-    float m_resolutionX, m_resolutionY;
-    float m_rgbDeconvergenceEffect;
-    float m_radialBlurEffect;
+	float m_bloomIntensity;
+	float m_time;
+	float m_resolutionX, m_resolutionY;
+	float m_rgbDeconvergenceEffect;
+	float m_radialBlurEffect;
+	float m_columnSplitEffect;
 };
 
 }

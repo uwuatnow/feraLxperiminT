@@ -58,11 +58,11 @@ vec4 getSourceColor(vec2 uv) {
 }
 
 void main() {
-    vec2 uv = gl_TexCoord[0].st;
-    
-    vec4 originalColor = getSourceColor(uv);
+	vec2 uv = gl_TexCoord[0].st;
 
-    if (radialBlurEffect > 0.0) {
+	vec4 originalColor = getSourceColor(uv);
+
+	if (radialBlurEffect > 0.0) {
         vec2 center = vec2(0.5, 0.5);
         vec2 toCenter = center - uv;
         float dist = length(toCenter);

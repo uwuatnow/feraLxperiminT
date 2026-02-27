@@ -18,13 +18,14 @@ public: //player effects
     float playerDiureticEffect;
     
 public: //visual effects
-    float visualWavy;
-    float visualWorldVibration;
-    float visualColorShift;
-    float visualKeleidoscope;
-    float visualNoise;
-    float visualGreyscale;
-    float visualShadowPeople;
+	float visualWavy;
+	float visualWorldVibration;
+	float visualColorShift;
+	float visualKeleidoscope;
+	float visualNoise;
+	float visualGreyscale;
+	float visualShadowPeople;
+	float visualColumnSplit;
 
 public: //auditory effects
     float auditoryEcho;

@@ -625,7 +625,65 @@ void InGameScreen::doTick(RendTarget* renderTarget)
 		winSizeFixedY = winSizeFixedX * 3 / 4;
 
 	sf::Shader* activeShader = anyPostProcess ? &postProcessShader->shader : nullptr;
-	if (doubleVisionEffect > 0.0f) {
+	
+	// Check for column split effect
+	float columnSplitEffect = 0.0f;
+	if (New3DRenderer* renderer3D = dynamic_cast<New3DRenderer*>(renderer)) {
+		columnSplitEffect = renderer3D->getCurrentColumnSplitEffect();
+	}
+	
+	if (columnSplitEffect > 0.0f) {
+		// Draw 6 separate columns with sine wave offsets
+		const int numColumns = 6;
+		int colWidth = Game::ScreenWidth / numColumns;
+		float time = G->screenSwitchClock.getElapsedSeconds();
+		
+		// Chaos factor increases with intensity
+		float chaosFactor = columnSplitEffect;
+		
+		for (int i = 0; i < numColumns; i++) {
+			// Calculate column position and texture rect
+			int colX = i * colWidth;
+			sf::IntRect colRect(colX, 0, colWidth, Game::ScreenHeight);
+			
+			// Different phase for each column
+			float colPhase = i * 0.8f;
+			
+		// Chaotic speed increases with intensity
+			float baseSpeed = 2.0f + chaosFactor * 8.0f;
+			float chaosSpeed = sin(time * 0.5f + colPhase) * 2.0f * chaosFactor;
+
+			// Chaotic amplitude increases with intensity - MUCH higher now
+			float baseAmplitude = 30.0f + chaosFactor * 120.0f; // pixels: 30-150 range
+			float chaosAmplitude = sin(time * 1.3f + colPhase * 1.5f) * 40.0f * chaosFactor; // up to 40 additional pixels
+
+			// Calculate Y offset using sine wave with chaos
+			float yOffset = sin(time * baseSpeed + colPhase + chaosSpeed) * (baseAmplitude + chaosAmplitude);
+
+			// Add secondary wave for more chaos at high intensity
+			if (chaosFactor > 0.5f) {
+				yOffset += sin(time * baseSpeed * 1.5f + colPhase * 2.0f) * baseAmplitude * 0.7f * chaosFactor;
+			}
+
+			// Add tertiary wave for extreme chaos at very high intensity
+			if (chaosFactor > 0.8f) {
+				yOffset += sin(time * baseSpeed * 2.2f + colPhase * 3.0f) * 60.0f * chaosFactor;
+			}
+			
+			// Set up the column sprite
+			rendTexSp.setTextureRect(colRect);
+			rendTexSp.setPosition((float)colX, yOffset);
+			rendTexSp.setColor(sf::Color(255, 255, 255, (sf::Uint8)(200 + 55 * (1.0f - chaosFactor))));
+			
+			// Draw the column
+			renderTarget->draw(rendTexSp, activeShader);
+		}
+		
+		// Reset sprite state
+		rendTexSp.setTextureRect(sf::IntRect(0, 0, Game::ScreenWidth, Game::ScreenHeight));
+		rendTexSp.setPosition(0, 0);
+		rendTexSp.setColor(sf::Color::White);
+	} else if (doubleVisionEffect > 0.0f) {
 		float scale = 1.0f + (doubleVisionEffect * 0.05f);
 		rendTexSp.setScale(scale, scale);
 		rendTexSp.setOrigin((float)Game::ScreenWidth / 2.0f, (float)Game::ScreenHeight / 2.0f);

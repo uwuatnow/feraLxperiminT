@@ -109,10 +109,11 @@ private:
     DrugEffectsManager* worldScramblerManager;
     DrugEffectsManager* fractalManager;
     DrugEffectsManager* depthPerceptionManager;
-    DrugEffectsManager* dissolveManager;
-    DrugEffectsManager* rgbDeconvergenceManager;
-    DrugEffectsManager* radialBlurManager;
-    DrugEffectsManager* bloomManager;
+	DrugEffectsManager* dissolveManager;
+	DrugEffectsManager* rgbDeconvergenceManager;
+	DrugEffectsManager* radialBlurManager;
+	DrugEffectsManager* bloomManager;
+	DrugEffectsManager* columnSplitManager;
 
 public:
     // Public methods to add drug effects (replaces direct float access)
@@ -128,11 +129,12 @@ public:
     void addFractalEffect(float effectValue, float durationSeconds);
     void addDepthPerceptionEffect(float effectValue, float durationSeconds);
     void addDissolveEffect(float effectValue, float durationSeconds);
-    void addRGBDeconvergenceEffect(float effectValue, float durationSeconds);
-    void addRadialBlurEffect(float effectValue, float durationSeconds);
-    void addBloomEffect(float effectValue, float durationSeconds);
+	void addRGBDeconvergenceEffect(float effectValue, float durationSeconds);
+	void addRadialBlurEffect(float effectValue, float durationSeconds);
+	void addBloomEffect(float effectValue, float durationSeconds);
+	void addColumnSplitEffect(float effectValue, float durationSeconds);
 
-    // Public getter methods for accessing current effect values
+	// Public getter methods for accessing current effect values
     float getCurrentWavyWorldEffect() const;
     float getCurrentWorldVibrationEffect() const;
     float getCurrentColorShiftEffect() const;
@@ -145,11 +147,12 @@ public:
     float getCurrentFractalEffect() const;
     float getCurrentDepthPerceptionEffect() const;
     float getCurrentDissolveEffect() const;
-    float getCurrentRGBDeconvergenceEffect() const;
-    float getCurrentRadialBlurEffect() const;
-    float getCurrentBloomEffect() const;
+	float getCurrentRGBDeconvergenceEffect() const;
+	float getCurrentRadialBlurEffect() const;
+	float getCurrentBloomEffect() const;
+	float getCurrentColumnSplitEffect() const;
 
-    // Public getter methods for accessing current tolerance values
+	// Public getter methods for accessing current tolerance values
     float getCurrentWavyWorldTolerance() const;
     float getCurrentWorldVibrationTolerance() const;
     float getCurrentColorShiftTolerance() const;
@@ -162,11 +165,12 @@ public:
     float getCurrentFractalTolerance() const;
     float getCurrentDepthPerceptionTolerance() const;
     float getCurrentDissolveTolerance() const;
-    float getCurrentRGBDeconvergenceTolerance() const;
-    float getCurrentRadialBlurTolerance() const;
-    float getCurrentBloomTolerance() const;
+	float getCurrentRGBDeconvergenceTolerance() const;
+	float getCurrentRadialBlurTolerance() const;
+	float getCurrentBloomTolerance() const;
+	float getCurrentColumnSplitTolerance() const;
 
-    // 3D Models
+	// 3D Models
     bool carModelLoaded = false;
     Model carModel;
 
