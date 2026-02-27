@@ -3,6 +3,5 @@ saves/
 test_skeleton.json
 root.json
 *.gch
-mingw32/
 /model/*.bin
 /.cache
