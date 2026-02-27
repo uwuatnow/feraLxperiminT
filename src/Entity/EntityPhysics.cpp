@@ -272,7 +272,7 @@ void Entity::physicsPush(double fromX, double fromY, float amount, float* outX, 
     double moveDist = (double)amount * dt;
 	Point diff = {};
 	double rott = Util::RotateTowards(fromX, fromY, posX, posY);
-	Util::AngleLineAbs(posX, posY, rott, moveDist, &diff.x, &diff.y);
+	Util::AngleLineAbs(0.0, 0.0, rott, moveDist, &diff.x, &diff.y);
 
     // Use OBB system for accurate contact point calculation
     OBB* obb = getOBB();
