@@ -32,12 +32,12 @@ void New3DRenderer::renderUrinePuddles(Map* map) const
             
             // Draw puddle as circle on floor
             glBegin(GL_TRIANGLE_FAN);
-            glVertex3f(puddleX, 0.01f, puddleZ); // Center
+            glVertex3f(puddleX, 0.07f, puddleZ); // Center
             for (int i = 0; i <= 16; i++) {
                 float angle = i * 2.0f * 3.14159f / 16.0f;
                 float x = puddleX + cos(angle) * radius;
                 float z = puddleZ + sin(angle) * radius;
-                glVertex3f(x, 0.01f, z);
+                glVertex3f(x, 0.07f, z);
             }
             glEnd();
         }
