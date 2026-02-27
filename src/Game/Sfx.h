@@ -31,6 +31,10 @@ public:
     static SoundFxEngine::Fx* CarDoorClose;
     static SoundFxEngine::Fx* CarGearShift;
     static SoundFxEngine::Fx* CarDrift;
+    static SoundFxEngine::Fx* GunRattle1;
+    static SoundFxEngine::Fx* GunRattle2;
+    static SoundFxEngine::Fx* GunRattle3;
+    static SoundFxEngine::Fx* GunRattle4;
     static SoundFxEngine::Fx* Cough1;
     static SoundFxEngine::Fx* Cough2;
     static SoundFxEngine::Fx* Cough3;
@@ -52,6 +56,7 @@ public:
     static SoundFxEngine::Fx* Cough19;
 
     static void PlayRandomCough(int channel);
+    static void PlayRandomGunRattle(float x, float y);
 };
 
 }

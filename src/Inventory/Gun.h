@@ -20,7 +20,9 @@ public:
 	
 public:
 	virtual void use() override;
+	virtual void update() override;
 	virtual void equippedUpdate() override;
+	virtual void playCollisionSfx() override;
 	
 protected:
 	virtual void shootBullet();
@@ -32,6 +34,7 @@ public:
 	GunType gunType;
 	Timer invervalTimer;
 	Timer recoilT;
+	Timer rattleCooldown;
 	float gunAngle;
 };
 

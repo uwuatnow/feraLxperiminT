@@ -14,6 +14,7 @@ namespace nyaa {
 Gun::Gun(const std::string& name, const std::string& desc, const std::string& texName, GunType type)
 	:Item(name, desc, texName, 1, 1, 0)
 	,gunType(type)
+	,rattleCooldown(300)
 	,gunAngle(0)
 {
 	invSpriteOffsetX = -5;
@@ -71,6 +72,12 @@ void Gun::use()
 	shootBullet();
 }
 
+void Gun::update()
+{
+	Entity::update();
+	rattleCooldown.update();
+}
+
 void Gun::shootBullet()
 {
 	Actor * a = inv->owner;
@@ -107,6 +114,15 @@ void Gun::equippedUpdate()
 	invervalTimer.update();
 	recoilT.update();
 	if (recoilT.secs() > 0.1) recoilT.setMillis(100);
+}
+
+void Gun::playCollisionSfx()
+{
+	// 300 ms cooldown per gun entity before it can rattle again
+	if (rattleCooldown.once(300.0f))
+	{
+		Sfx::PlayRandomGunRattle((float)posX, (float)posY);
+	}
 }
 
 }

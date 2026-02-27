@@ -206,6 +206,10 @@ Game::Game()
 	Sfx::CarDoorClose = Sfx::Engine.add("cardoor_close", false);
 	Sfx::CarGearShift = Sfx::Engine.add("shift", false);
 	Sfx::CarDrift = Sfx::Engine.add("drift", false);
+	Sfx::GunRattle1 = Sfx::Engine.add("gun_rattle1");
+	Sfx::GunRattle2 = Sfx::Engine.add("gun_rattle2");
+	Sfx::GunRattle3 = Sfx::Engine.add("gun_rattle3");
+	Sfx::GunRattle4 = Sfx::Engine.add("gun_rattle4");
 	Sfx::Cough1 = Sfx::Engine.add("Cough1");
 	Sfx::Cough2 = Sfx::Engine.add("Cough2");
 	Sfx::Cough3 = Sfx::Engine.add("Cough3");

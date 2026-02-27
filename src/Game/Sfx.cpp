@@ -24,6 +24,10 @@ SoundFxEngine::Fx* Sfx::CarDoorOpen;
 SoundFxEngine::Fx* Sfx::CarDoorClose;
 SoundFxEngine::Fx* Sfx::CarGearShift;
 SoundFxEngine::Fx* Sfx::CarDrift;
+SoundFxEngine::Fx* Sfx::GunRattle1;
+SoundFxEngine::Fx* Sfx::GunRattle2;
+SoundFxEngine::Fx* Sfx::GunRattle3;
+SoundFxEngine::Fx* Sfx::GunRattle4;
 SoundFxEngine::Fx* Sfx::Cough1;
 SoundFxEngine::Fx* Sfx::Cough2;
 SoundFxEngine::Fx* Sfx::Cough3;
@@ -88,6 +92,16 @@ void Sfx::PlayRandomCough(int channel)
         ActiveCoughChannels[channel] = coughFx;
         coughFx->play();
     }
+}
+
+void Sfx::PlayRandomGunRattle(float x, float y)
+{
+    SoundFxEngine::Fx* rattles[4] = { GunRattle1, GunRattle2, GunRattle3, GunRattle4 };
+    int idx = (int)(Util::RandNormalized() * 4.0f);
+    if (idx < 0) idx = 0;
+    if (idx > 3) idx = 3;
+    if (rattles[idx])
+        rattles[idx]->play(x, y);
 }
 
 }

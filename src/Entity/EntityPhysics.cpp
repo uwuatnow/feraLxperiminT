@@ -9,6 +9,7 @@
 #include "Entity/CarBase.h"
 #include "Entity/Actor.h"
 #include "Entity/BuildingWallEntity.h"
+#include "Inventory/Gun.h"
 #include "Game/OBB.h"
 
 namespace nyaa {
@@ -101,6 +102,15 @@ void Entity::resolveCollisionWith(Entity* e)
 		// Check z difference - if too high, no collision (allows jumping over)
 		float zDiff = std::abs(posZ - e->posZ);
 		if (zDiff > 16.0f) return;
+
+		// Actor displacing a gun: trigger rattle immediately on OBB contact.
+		// Actor velocity via lpos delta is unreliable (slide system), so we
+		// don't wait for the vDotN < 0 impulse block.
+		if (dynamic_cast<Actor*>(this) && dynamic_cast<Gun*>(e)) {
+			e->playCollisionSfx();
+		} else if (dynamic_cast<Actor*>(e) && dynamic_cast<Gun*>(this)) {
+			playCollisionSfx();
+		}
 
 		// Collision normal is mtv normalized
 		double mtvLen = std::sqrt(mtv.x * mtv.x + mtv.y * mtv.y);
@@ -337,7 +347,7 @@ void Entity::physicsPush(double fromX, double fromY, float amount, float* outX, 
     }
     physicsSlideAngle = Util::SnapAngle(Util::RotateTowards((float)fromX, (float)fromY, (float)posX, (float)posY));
     physicsSlideAmount = amount * friction;
-    Sfx::Pick->play((float)posX, (float)posY);
+    playCollisionSfx();
     auto ndiff = -diff;
 	if (outX) *outX = ndiff.x;
 	if (outY) *outY = ndiff.y;
