@@ -158,7 +158,8 @@ public:
 	Interaction* deletePortalInter;
 	Interaction* editPortalInter;
 	Interaction* setSpawnInter;
-	Interaction* spawnCarInter;
+    Interaction* spawnCarInter;
+    Interaction* spawnBuildingInter;
 	Interaction* giveWeaponsInter;
 	Interaction* openInvInter;
 	Interaction* toggleWallDestructableInter;

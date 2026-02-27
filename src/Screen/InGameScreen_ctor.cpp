@@ -83,7 +83,8 @@ InGameScreen::~InGameScreen()
 	delete newPortalInteraction;
 	delete deletePortalInter;
 	delete editPortalInter;
-	delete spawnCarInter;
+    delete spawnCarInter;
+    delete spawnBuildingInter;
 	delete giveWeaponsInter;
 	delete openInvInter;
 	delete toggleWallDestructableInter;
@@ -315,18 +316,48 @@ InGameScreen::InGameScreen(int saveDataSlot)
 		return true;
 	});
 
-	spawnCarInter = new Interaction(nullptr, "Spawn car", [](Interaction* i) -> bool
-	{
-		auto car = new DevCar();
-		IGS->player->hostMap->addEnt(car, true);//set as mission spawned even though its not part of the mission
-		auto& p = IGS->player;
-		auto tp = sf::Vector2i{};
-		p->getTileInFront(Direction_Default, &tp.x, &tp.y);
-		car->setPosTile(tp.x, tp.y);
-		return true;
-	});
+    spawnCarInter = new Interaction(nullptr, "Spawn car", [](Interaction* i) -> bool
+    {
+        auto car = new DevCar();
+        IGS->player->hostMap->addEnt(car, true);//set as mission spawned even though its not part of the mission
+        auto& p = IGS->player;
+        auto tp = sf::Vector2i{};
+        p->getTileInFront(Direction_Default, &tp.x, &tp.y);
+        car->setPosTile(tp.x, tp.y);
+        return true;
+    });
 
-	giveWeaponsInter = new Interaction(nullptr, "Give weapons", [](Interaction* i) -> bool
+    spawnBuildingInter = new Interaction(nullptr, "Spawn building", [](Interaction* i) -> bool
+    {
+        auto& p = IGS->player;
+        auto tp = sf::Vector2i{};
+        p->getTileInFront(Direction_Default, &tp.x, &tp.y);
+
+        // Create building at tile position
+        auto building = new Building();
+        building->name = "Spawned Building";
+        building->posX = tp.x * Map::TileSizePixels;
+        building->posY = tp.y * Map::TileSizePixels;
+
+        // Create 4 connected walls to form a square room
+        float wallSize = 128.0f;
+        // Wall 1: bottom edge
+        building->floors[0]->walls.push_back(BuildingWall(0, 0, wallSize, 0));
+        // Wall 2: right edge
+        building->floors[0]->walls.push_back(BuildingWall(wallSize, 0, wallSize, wallSize));
+        // Wall 3: top edge
+        building->floors[0]->walls.push_back(BuildingWall(wallSize, wallSize, 0, wallSize));
+        // Wall 4: left edge
+        building->floors[0]->walls.push_back(BuildingWall(0, wallSize, 0, 0));
+
+        // Add building to map and spawn physics entities
+        p->hostMap->buildings.push_back(building);
+        building->spawnWallEntities(p->hostMap);
+
+        return true;
+    });
+
+    giveWeaponsInter = new Interaction(nullptr, "Give weapons", [](Interaction* i) -> bool
 	{
 		auto gun = Gun::Create(GunType::Pistol);
 		IGS->player->inv->equippedItem = gun;

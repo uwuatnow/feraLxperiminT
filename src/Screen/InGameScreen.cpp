@@ -1330,9 +1330,10 @@ void InGameScreen::doTick(RendTarget* renderTarget)
 		renderTarget->draw(cs);
 	}
 
-	// interactables.push_back(newPortalInteraction);
-	interactables.push_back(spawnCarInter);
-	//interactables.push_back(giveWeaponsInter);
+    // interactables.push_back(newPortalInteraction);
+    interactables.push_back(spawnCarInter);
+    interactables.push_back(spawnBuildingInter);
+    //interactables.push_back(giveWeaponsInter);
 
 	// Update and render debug menu if visible
 	if (debugMenuVisible && debugMenuPrompt)
