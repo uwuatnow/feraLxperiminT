@@ -40,16 +40,22 @@ void DevTestMission::init()
 		dev_test_map->addEnt(car, true);
 	}
 	
-	DealerCatgirl* dealer = new DealerCatgirl(
-		255, 255, 255, 255,
-		255, 255, 255, 255,
-		255, 255, 255, 255,
-		255, 255, 255, 255,
-		255, 255, 255, 255,
-		255, 255, 255, 255
-	);
-	dealer->setPosTile(-10, 6);
-	dev_test_map->addEnt(dealer, true);
+  DealerCatgirl* dealer = new DealerCatgirl(
+  255, 255, 255, 255,
+  255, 255, 255, 255,
+  255, 255, 255, 255,
+  255, 255, 255, 255,
+  255, 255, 255, 255,
+  255, 255, 255, 255
+  );
+  dev_test_map->addEnt(dealer, true);
+  dealer->setPosTile(-10, 6);
+
+  // Setup home wandering behavior
+  dealer->isHomeWandering = true;
+  dealer->homePointX = dealer->posX;
+  dealer->homePointY = dealer->posY;
+  dealer->homeWalkRange = 80.0f; // Wander within 5 tiles (80 pixels)
 
 	for(int i = 0; i < 5; i++)
 	{

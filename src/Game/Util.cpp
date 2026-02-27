@@ -172,8 +172,8 @@ void Util::AngleLineRel(double fromX, double fromY, double deg, double dist, dou
 void Util::AngleLineAbs(double fromX, double fromY, double deg, double dist, double* outX, double* outY)
 {
 	double radians = (deg / 360.0) * (3.14159265358979323846 * 2.0);
-	if (outX) *outX = cos(radians) * dist;
-	if (outY) *outY = sin(radians) * dist;
+	if (outX) *outX = fromX + cos(radians) * dist;
+	if (outY) *outY = fromY + sin(radians) * dist;
 }
 
 double Util::SnapAngle(double angle)
