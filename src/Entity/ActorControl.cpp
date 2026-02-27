@@ -44,13 +44,13 @@ float Actor::control()
 
 	auto& ji = G->joystickIndex;
 	
-	if (canUseItems() 
+	if (canUseItems()
 		&& (
 			Mouse::LeftFrames
-			|| sf::Joystick::isButtonPressed(ji, 0)
+			|| sf::Joystick::isButtonPressed(ji, 1) // Circle button to use equipped item
 			|| Kb::IsKeyDown(KB::RControl)
+			)
 		)
-	)
 	{
 		inv->equippedItem->use();
 	}
@@ -253,8 +253,8 @@ float Actor::control()
 		}
 	}
 
-	// Jump
-	if (Kb::IsKeyDown(KB::Space) && posZ <= 0.0f) jump();
+	// Jump (Space key or X button)
+	if ((Kb::IsKeyDown(KB::Space) || sf::Joystick::isButtonPressed(ji, 0)) && posZ <= 0.0f) jump();
 
 	if (!(flags & EntFlag_Animating) && posZ == 0.0f) physicsSlideAmount = 0;
 

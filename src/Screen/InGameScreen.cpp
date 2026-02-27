@@ -190,7 +190,7 @@ void InGameScreen::doTick(RendTarget* renderTarget)
 #endif
 	guip = this;
 
-	if (Kb::IsKeyFirstFrame(KB::I) && (guip_eof == this || guip_eof == invPopup))
+	if ((Kb::IsKeyFirstFrame(KB::I) || (Controller::dpy == 100 && Controller::dpyFrames == 1)) && (guip_eof == this || guip_eof == invPopup))
 	{
 		showInventoryPopup = !showInventoryPopup;
 		if (showInventoryPopup) {
@@ -595,7 +595,7 @@ void InGameScreen::doTick(RendTarget* renderTarget)
 			postProcessShader->setRgbDeconvergenceEffect(0.0f);
 		}
 
-		if (renderer3D->getCurrentRadialBlurEffect() > 0.0f) {
+	if (renderer3D->getCurrentRadialBlurEffect() > 0.0f) {
 			postProcessShader->setRadialBlurEffect(renderer3D->getCurrentRadialBlurEffect());
 			anyPostProcess = true;
 		} else {
@@ -691,13 +691,13 @@ void InGameScreen::doTick(RendTarget* renderTarget)
 
 		// Draw the main image
 		renderTarget->draw(rendTexSp, activeShader);
-		
+
 		// Draw the double vision offset image
 		float offsetAmount = 10.0f * doubleVisionEffect; // Increased range for more separation
 		rendTexSp.setPosition((float)Game::ScreenWidth / 2.0f + offsetAmount, (float)Game::ScreenHeight / 2.0f + offsetAmount * 0.5f);
 		rendTexSp.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * doubleVisionEffect * 0.5f)));
 		renderTarget->draw(rendTexSp, activeShader);
-		
+
 		// Reset for next frame
 		rendTexSp.setPosition(0, 0);
 		rendTexSp.setOrigin(0, 0);
@@ -1388,7 +1388,8 @@ void InGameScreen::doTick(RendTarget* renderTarget)
 		&& player->isControllable
 		&& !(player->flags & Entity::EntFlag_Dead)
 		&& G->winFocused
-	)
+		&& !showInventoryPopup
+		)
 	{
 		/* cycle interactables*/
 		if (Kb::IsKeyFirstFrame(KB::Tab) || Controller::BtnFrames[Btn_RBtn] == 1)
@@ -1941,6 +1942,127 @@ void InGameScreen::InventoryPopup::handleInput(Actor* player)
 	int gridStartX = 120;
 	int gridStartY = Game::ScreenHeight - inventoryHeight - 150;
 	bool mouseInsideInventory = Mouse::Pos_X >= gridStartX && Mouse::Pos_Y >= gridStartY && Mouse::Pos_X <= gridStartX + GRID_WIDTH * (SLOT_SIZE + SLOT_SPACING) && Mouse::Pos_Y <= gridStartY + GRID_HEIGHT * (SLOT_SIZE + SLOT_SPACING);
+
+	// Controller navigation using d-pad
+	bool dpadLeft = (Controller::dpx == -100 && Controller::dpxFrames == 1);
+	bool dpadRight = (Controller::dpx == 100 && Controller::dpxFrames == 1);
+	bool dpadUp = (Controller::dpy == 100 && Controller::dpyFrames == 1);
+	bool dpadDown = (Controller::dpy == -100 && Controller::dpyFrames == 1);
+
+	if(player->inv->items.empty()) return;
+
+	int oldSlot = m_SelectedSlot;
+	int oldScroll = m_ScrollOffset;
+
+	// Grid navigation with d-pad
+	if(dpadLeft)
+	{
+		m_SelectedSlot--;
+		if(m_SelectedSlot < 0) m_SelectedSlot = GRID_WIDTH - 1;
+	}
+	if(dpadRight)
+	{
+		m_SelectedSlot++;
+		if(m_SelectedSlot >= GRID_WIDTH) m_SelectedSlot = 0;
+	}
+	if(dpadUp)
+	{
+		m_SelectedSlot -= GRID_WIDTH;
+		if(m_SelectedSlot < 0)
+		{
+			if(m_ScrollOffset > 0)
+			{
+				m_ScrollOffset--;
+				m_SelectedSlot += GRID_WIDTH;
+			}
+			else
+			{
+				m_SelectedSlot += GRID_WIDTH;
+			}
+		}
+	}
+	if(dpadDown)
+	{
+		m_SelectedSlot += GRID_WIDTH;
+		if(m_SelectedSlot >= GRID_WIDTH * GRID_HEIGHT)
+		{
+			int totalRows = (player->inv->items.size() + GRID_WIDTH - 1) / GRID_WIDTH;
+			if(m_ScrollOffset < totalRows - GRID_HEIGHT)
+			{
+				m_ScrollOffset++;
+				m_SelectedSlot -= GRID_WIDTH;
+			}
+			else
+			{
+				m_SelectedSlot -= GRID_WIDTH;
+			}
+		}
+	}
+
+	// Clamp selection to valid items
+	int itemIndex = getSelectedItemIndex();
+	if(itemIndex >= (int)player->inv->items.size())
+	{
+		m_SelectedSlot = oldSlot;
+		m_ScrollOffset = oldScroll;
+	}
+
+	// Equip item with Square button
+	if(Controller::BtnFrames[Btn_Square] == 1)
+	{
+		int idx = getSelectedItemIndex();
+		if(idx < (int)player->inv->items.size())
+		{
+			player->inv->equippedItem = player->inv->items[idx];
+		}
+		else
+		{
+			player->inv->equippedItem = nullptr;
+		}
+	}
+
+	// Drop item with Triangle button
+	if(Controller::BtnFrames[Btn_Triangle] == 1)
+	{
+		int idx = getSelectedItemIndex();
+		if(idx < (int)player->inv->items.size())
+		{
+			Item* itemToDrop = player->inv->items[idx];
+
+			// Unequip if equipped
+			if(itemToDrop == player->inv->equippedItem)
+			{
+				player->inv->equippedItem = nullptr;
+			}
+
+			// Remove from inventory
+			player->inv->items.erase(player->inv->items.begin() + idx);
+
+			// Calculate position in front of player
+			double dropPosX = player->posX;
+			double dropPosY = player->posY;
+			if(player->getDir() == Direction_Up) dropPosY -= 20;
+			else if(player->getDir() == Direction_Down) dropPosY += 20;
+			else if(player->getDir() == Direction_Left) dropPosX -= 20;
+			else if(player->getDir() == Direction_Right) dropPosX += 20;
+
+			// Set item position and add to map
+			itemToDrop->posX = dropPosX;
+			itemToDrop->posY = dropPosY;
+			itemToDrop->updateTPos();
+			itemToDrop->inv = nullptr;
+
+			player->hostMap->addEnt(itemToDrop);
+		}
+	}
+
+	// Close popup with Circle button
+	if(Controller::BtnFrames[Btn_Circle] == 1)
+	{
+		IGS->showInventoryPopup = false;
+		return;
+	}
+
 	// Left click to select or start drag
 	if(Mouse::LeftFrames == 1 && !m_DraggedItem)
 	{
