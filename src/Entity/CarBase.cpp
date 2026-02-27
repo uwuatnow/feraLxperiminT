@@ -3,6 +3,7 @@
 #include "Map/CollisionLine.h"
 #include "Entity/Interaction.h"
 #include <cassert>
+#include <cmath>
 #include "Screen/InGameScreen.h"
 #include "Screen/PauseScreen.h"
 #include "Entity/Actor.h"
@@ -63,9 +64,12 @@ CarBase::CarBase(float mass_, float inertia_, float sizeX_, float sizeY_,
     ,prevRadioStationInter(nullptr)
     ,nextRadioStationInter(nullptr)
     ,fillTankInter(nullptr)
-	,steerInput(0.0f)
+,steerInput(0.0f)
 	,throttleInput(0.0f)
 	,brakeInput(0.0f)
+	,cameraRefAngle(0.0f)
+	,cameraControlActive(false)
+	,lastStickAngle(0.0f)
 {
     // Initialize physics properties
     mass = mass_; // kg
@@ -576,22 +580,103 @@ void CarBase::update()
 				if (Kb::IsKeyDown(KB::A)) left(1.0f);
 				if (Kb::IsKeyDown(KB::D)) right(1.0f);
 			}
-			else if(G->inMethod == InputMethod_Controller)
-			{
-				auto& ji = G->joystickIndex;
-				float joyX = sf::Joystick::getAxisPosition(ji, sf::Joystick::Axis::X);
-				float joyY = sf::Joystick::getAxisPosition(ji, sf::Joystick::Axis::Y);
-				auto deadzone = 15.f;
-				if (std::fabs(joyX) < deadzone) joyX = 0;
-				if (std::fabs(joyY) < deadzone) joyY = 0;
-				
-				if (joyX != 0 || joyY != 0) {
-					steerInput = (joyX / 100.0f);
-                    throttleInput = -(joyY / 100.0f);
-				}
+else if(G->inMethod == InputMethod_Controller)
+				{
+					auto& ji = G->joystickIndex;
+					float joyX = sf::Joystick::getAxisPosition(ji, sf::Joystick::Axis::X);
+					float joyY = sf::Joystick::getAxisPosition(ji, sf::Joystick::Axis::Y);
+					auto deadzone = 15.f;
+					if (std::fabs(joyX) < deadzone) joyX = 0;
+					if (std::fabs(joyY) < deadzone) joyY = 0;
 
-				if (Controller::BtnFrames[Btn_Circle]) brakeInput = 1.0f;
-			}
+					if (joyX != 0 || joyY != 0) {
+						// Calculate stick angle (in degrees, 0 = right, 90 = down, 180 = left, 270 = up)
+						float stickAngle = std::atan2(joyY, joyX) * (180.0f / 3.14159265f);
+						
+						// Normalize stick angle to 0-360
+						if (stickAngle < 0) stickAngle += 360.0f;
+						
+						// Calculate stick magnitude (how far the stick is pushed)
+						float stickMagnitude = std::sqrt(joyX * joyX + joyY * joyY) / 100.0f;
+						if (stickMagnitude > 1.0f) stickMagnitude = 1.0f;
+						
+						// Camera-relative controls:
+						// Stick direction is relative to the camera view
+						// We want: stick pointing "down" on screen = drive forward regardless of car rotation
+						//          stick pointing "left" on screen = steer left relative to camera
+						
+						// Get car's current facing angle (normalized to 0-360)
+						float carAngle = std::fmod(dirAngle, 360.0f);
+						if (carAngle < 0) carAngle += 360.0f;
+						
+						// In the game coordinate system:
+						// dirAngle 0 = facing right (east)
+						// dirAngle 90 = facing down (south)
+						// dirAngle 180 = facing left (west)
+						// dirAngle 270 = facing up (north)
+						
+						// The stick angle is also in this coordinate system
+						// stickAngle 0 = stick pushed right
+						// stickAngle 90 = stick pushed down
+						// stickAngle 180 = stick pushed left
+						// stickAngle 270 = stick pushed up
+						
+						// Calculate the relative angle between stick and car facing
+						float relativeAngle = stickAngle - carAngle;
+						// Normalize to -180 to 180
+						while (relativeAngle > 180.0f) relativeAngle -= 360.0f;
+						while (relativeAngle < -180.0f) relativeAngle += 360.0f;
+						
+// Now interpret the relative angle with 66% forward / 34% reverse bias:
+					// Forward arc: -120° to +120° (240° total = 66.7%)
+					// Reverse arc: 120° to 240° (120° total = 33.3%)
+					// This makes forward driving more likely and reduces accidental gear shifts
+					const float FORWARD_HALF_ANGLE = 120.0f; // Half of the forward arc
+					
+					// Check if we're in forward or reverse zone based on the biased angle ranges
+					bool inForwardZone = std::fabs(relativeAngle) < FORWARD_HALF_ANGLE;
+					bool inReverseZone = !inForwardZone;
+					
+					// Calculate steering - we need to scale the angle so that:
+					// In forward zone: -120° to +120° maps to steering -1 to +1
+					// In reverse zone: the remaining 60° on each side maps to steering -1 to +1
+					float steeringAngle;
+					if (inForwardZone) {
+						// Scale the forward zone: -120° to +120° should feel like full steering range
+						// We multiply by (90/120) = 0.75 to normalize to -90° to +90° equivalent
+						steeringAngle = relativeAngle * 0.75f;
+					} else {
+						// In reverse zone: remaining angles (120° to 180° and -180° to -120°)
+						// Scale these to feel like the outer steering range
+						// Map 120°-180° to 90°-180° equivalent (and similarly for negative)
+						if (relativeAngle > 0) {
+							// 120° to 180°
+							steeringAngle = 90.0f + (relativeAngle - FORWARD_HALF_ANGLE) * 1.5f;
+						} else {
+							// -180° to -120°
+							steeringAngle = -90.0f + (relativeAngle + FORWARD_HALF_ANGLE) * 1.5f;
+						}
+					}
+					
+					// Use sine for steering based on the scaled angle
+					steerInput = std::sin(Util::ToRad(steeringAngle));
+					
+					// Calculate throttle: full magnitude in the respective zone
+					if (inForwardZone) {
+						throttleInput = stickMagnitude;
+					} else {
+						throttleInput = -stickMagnitude;
+					}
+						
+						// Store for reference
+						lastStickAngle = stickAngle;
+						cameraControlActive = true;
+					} else {
+						cameraControlActive = false;
+					}
+
+					if (Controller::BtnFrames[Btn_Circle]) brakeInput = 1.0f;
+				}
 			
             if (Controller::BtnFrames[Btn_X] || Kb::IsKeyDown(KB::Space)) brakeInput = 1.0f;
 			

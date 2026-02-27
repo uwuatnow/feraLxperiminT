@@ -102,9 +102,14 @@ protected:
     Interaction* nextRadioStationInter;
     Interaction* fillTankInter;
 	
-    float steerInput;
+float steerInput;
 	float throttleInput;
 	float brakeInput;
+
+	// Camera-relative control state
+	float cameraRefAngle;      // Reference angle when controls were engaged
+	bool cameraControlActive;  // Whether camera-relative mode is active
+	float lastStickAngle;      // Last calculated stick angle
 };
 
 } // namespace nyaa
