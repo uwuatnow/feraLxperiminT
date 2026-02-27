@@ -190,7 +190,7 @@ void InGameScreen::doTick(RendTarget* renderTarget)
 #endif
 	guip = this;
 
-	if ((Kb::IsKeyFirstFrame(KB::I) || (Controller::dpy == 100 && Controller::dpyFrames == 1)) && (guip_eof == this || guip_eof == invPopup))
+	if ((Kb::IsKeyFirstFrame(KB::I) || (Controller::dpy == 100 && Controller::dpyFrames == 1 && !showInventoryPopup)) && (guip_eof == this || guip_eof == invPopup))
 	{
 		showInventoryPopup = !showInventoryPopup;
 		if (showInventoryPopup) {
@@ -1129,8 +1129,13 @@ void InGameScreen::doTick(RendTarget* renderTarget)
 		&& G->curScreenFramesPassed > 30
 	)
 	{
-		Sfx::Close->play();
-		PauseScreen::Instance->switchTo();
+		if (showInventoryPopup && Kb::IsKeyFirstFrame(KB::Escape)) {
+			showInventoryPopup = false;
+			Sfx::Close->play();
+		} else {
+			Sfx::Close->play();
+			PauseScreen::Instance->switchTo();
+		}
 	}
 
 	//interactables.push_back(openInvInter);
@@ -1904,7 +1909,13 @@ void InGameScreen::InventoryPopup::draw(RendTarget* renderTarget, Actor* player)
 	}
 
 	// Draw tooltip for hovered item
-	int hoveredSlot = getSlotAtPosition(Mouse::Pos_X, Mouse::Pos_Y);
+	int hoveredSlot = -1;
+	if (G->inMethod == InputMethod_Controller) {
+		hoveredSlot = m_SelectedSlot;
+	} else {
+		hoveredSlot = getSlotAtPosition(Mouse::Pos_X, Mouse::Pos_Y);
+	}
+
 	if (hoveredSlot >= 0) {
 		int itemIndex = m_ScrollOffset * GRID_WIDTH + hoveredSlot;
 		if (itemIndex < (int)player->inv->items.size()) {
@@ -1913,16 +1924,32 @@ void InGameScreen::InventoryPopup::draw(RendTarget* renderTarget, Actor* player)
 			nameText.setFillColor(sf::Color::White);
 			nameText.setOutlineColor(sf::Color::Black);
 			nameText.setOutlineThickness(1);
-			float tooltipX = Mouse::Pos_X + 10;
-			float tooltipY = Mouse::Pos_Y - 30;
-			nameText.setPosition(tooltipX, tooltipY);
-			renderTarget->draw(nameText);
 
 			sf::Text descText(item->description, *Fonts::MainFont, 12);
 			descText.setFillColor(sf::Color::White);
 			descText.setOutlineColor(sf::Color::Black);
 			descText.setOutlineThickness(1);
-			descText.setPosition(tooltipX, tooltipY + 20);
+
+			float tooltipX, tooltipY, descX;
+			if (G->inMethod == InputMethod_Controller) {
+				int x = hoveredSlot % GRID_WIDTH;
+				int y = hoveredSlot / GRID_WIDTH;
+				float slotX = gridStartX + x * (SLOT_SIZE + SLOT_SPACING);
+				float slotY = gridStartY + y * (SLOT_SIZE + SLOT_SPACING);
+				
+				tooltipX = slotX + (SLOT_SIZE / 2.0f) - (nameText.getLocalBounds().width / 2.0f);
+				tooltipY = slotY - 45; // Above the item slot
+				descX = slotX + (SLOT_SIZE / 2.0f) - (descText.getLocalBounds().width / 2.0f);
+			} else {
+				tooltipX = Mouse::Pos_X + 10;
+				tooltipY = Mouse::Pos_Y - 30;
+				descX = tooltipX;
+			}
+
+			nameText.setPosition(tooltipX, tooltipY);
+			renderTarget->draw(nameText);
+
+			descText.setPosition(descX, tooltipY + 20);
 			renderTarget->draw(descText);
 		}
 	}
@@ -1949,6 +1976,13 @@ void InGameScreen::InventoryPopup::handleInput(Actor* player)
 	bool dpadRight = (Controller::dpx == 100 && Controller::dpxFrames == 1);
 	bool dpadUp = (Controller::dpy == 100 && Controller::dpyFrames == 1);
 	bool dpadDown = (Controller::dpy == -100 && Controller::dpyFrames == 1);
+
+	// Close popup with Triangle button
+	if(Controller::BtnFrames[Btn_Triangle] == 1)
+	{
+		IGS->showInventoryPopup = false;
+		return;
+	}
 
 	if(player->inv->items.empty()) return;
 
@@ -2022,8 +2056,8 @@ void InGameScreen::InventoryPopup::handleInput(Actor* player)
 		}
 	}
 
-	// Drop item with Triangle button
-	if(Controller::BtnFrames[Btn_Triangle] == 1)
+	// Drop item with Circle button
+	if(Controller::BtnFrames[Btn_Circle] == 1)
 	{
 		int idx = getSelectedItemIndex();
 		if(idx < (int)player->inv->items.size())
@@ -2055,13 +2089,6 @@ void InGameScreen::InventoryPopup::handleInput(Actor* player)
 
 			player->hostMap->addEnt(itemToDrop);
 		}
-	}
-
-	// Close popup with Circle button
-	if(Controller::BtnFrames[Btn_Circle] == 1)
-	{
-		IGS->showInventoryPopup = false;
-		return;
 	}
 
 	// Left click to select or start drag

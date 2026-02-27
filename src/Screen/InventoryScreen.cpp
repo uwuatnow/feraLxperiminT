@@ -15,6 +15,7 @@
 #include "Game/Mouse.h"
 #include <SFML/Graphics/CircleShape.hpp>
 #include "Game/Sfx.h"
+#include "Game/Controller.h"
 
 namespace nyaa {
 
@@ -43,7 +44,7 @@ InventoryScreen::InventoryScreen()
 void InventoryScreen::doTick(RendTarget* renderTarget)
 {
 	Screen::doTick(renderTarget);
-	if (Kb::IsKeyReleased(KB::Escape) || Kb::IsKeyReleased(KB::Q))
+	if (Kb::IsKeyReleased(KB::Escape) || Kb::IsKeyReleased(KB::Q) || Controller::BtnFrames[Btn_Triangle] == 1)
 	{
 		myLastScreen->switchTo();
 	}
