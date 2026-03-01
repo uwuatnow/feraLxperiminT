@@ -333,11 +333,28 @@ void Camera::use(sf::RenderTarget& target, float verticalOffset)
 
     updateBasis(target);
 
-    // Update audio listener
+    // Update audio listener to be at the player's position
     float ldirX = laX - eyePos.x;
     float ldirY = laY - eyePos.y;
     float ldirZ = laZ - eyePos.z;
-    Sfx::Engine.setListener((float)(cX * 16.0f), (cameraHeight + verticalOffset) * 16.0f, (float)((cZ + currentCameraDistance) * 16.0f), ldirX, ldirY, ldirZ, 0, 1, 0);
+
+    double listenerX = (cX * 16.0f);
+    double listenerY = (cameraHeight + verticalOffset) * 16.0f;
+    double listenerZ = ((cZ + currentCameraDistance) * 16.0f);
+
+    if (IGS && IGS->player) {
+        listenerX = IGS->player->posX;
+        listenerY = IGS->player->posZ + (IGS->player->sizeZ * 0.9); // Position at ear level
+        listenerZ = IGS->player->posY;
+
+        if (playerInCar && car) {
+            listenerX = car->posX;
+            listenerY = car->posZ + (car->roofHeight * 0.8); // Slightly below roof when sitting
+            listenerZ = car->posY;
+        }
+    }
+
+    Sfx::Engine.setListener((float)listenerX, (float)listenerY, (float)listenerZ, ldirX, ldirY, ldirZ, 0, 1, 0);
 }
 
 void Camera::updateBasis(const sf::RenderTarget& target) const
