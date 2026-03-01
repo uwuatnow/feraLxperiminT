@@ -7,6 +7,7 @@
 #include "Entity/BulletProjectile.h"
 #include "Entity/Door.h"
 #include "Game/Util.h"
+#include "Screen/InGameScreen.h"
 #include "Game/Timer.h"
 #include "Game/OBB.h"
 #include <cstdlib>
@@ -15,6 +16,13 @@ namespace nyaa {
 
 void Actor::npcFollow()
 {
+	// Stop following when in dialogue
+	if (IGS->dbox.showing)
+	{
+		flags &= ~EntFlag_Animating;
+		return;
+	}
+
 	if (follow)
 	{
 		Point apos = { follow->posX, follow->posY };
@@ -196,6 +204,14 @@ void Actor::npcHomeWander()
 	if (!isHomeWandering)
 	{
 		hasWanderTarget = false;
+		return;
+	}
+
+	// Stop wandering when in dialogue
+	if (IGS->dbox.showing)
+	{
+		hasWanderTarget = false;
+		flags &= ~EntFlag_Animating;
 		return;
 	}
 
