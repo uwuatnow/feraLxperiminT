@@ -17,7 +17,7 @@ static std::vector<float> left_buffer;
 static std::vector<float> right_buffer;
 static float flc_last_left = 0.0f;
 static float flc_last_right = 0.0f;
-float flc_basestep = 0.16f;
+float flc_basestep = 0.26f;
 int flc_recon_steps = 12;
 
 static void flc_node_process(ma_node* pNode, const float** ppFramesIn, ma_uint32* pFrameCountIn, float** ppFramesOut, ma_uint32* pFrameCountOut)
@@ -107,16 +107,16 @@ static ma_node_vtable flc_node_vtable = {
 };
 
 SoundFxEngine::SoundFxEngine()
-	:masterVolume(
+:masterVolume(
 #if DEBUG
-		0.2f
+0.2f
 #else
-		0.91f
+0.91f
 #endif
-	)
-	,radioVolume(0.6f)
-	, listenerX(0.0), listenerY(0.0), listenerZ(0.0)
-	, maxHearDistance(16.0 * 400.0) // 40 tiles
+)
+,radioVolume(0.6f)
+, listenerX(0.0), listenerY(0.0), listenerZ(0.0)
+, maxHearDistance(16.0 * 25.0)
 {
 	engine = new ma_engine;
 	ma_engine_config config = ma_engine_config_init();
@@ -181,7 +181,7 @@ void SoundFxEngine::setListener(double x, double y, double z, float lookX, float
 	listenerX = x;
 	listenerY = y;
 	listenerZ = z;
-	ma_engine_listener_set_position(engine, 0, (float)(x - 50.0), (float)y, (float)z);
+	ma_engine_listener_set_position(engine, 0, (float)x, (float)y, (float)z);
 	ma_engine_listener_set_direction(engine, 0, lookX, lookY, lookZ);
 	ma_engine_listener_set_world_up(engine, 0, upX, upY, upZ);
 }

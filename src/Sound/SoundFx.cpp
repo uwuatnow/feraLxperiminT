@@ -76,8 +76,9 @@ void SoundFxEngine::Fx::play(double x, double y, bool noSpam, float volume)
 			ma_sound_seek_to_pcm_frame(s, 0);
 			ma_sound_set_positioning(s, ma_positioning_absolute);
 			ma_sound_set_position(s, (float)x, 0.0f, (float)y);
-			ma_sound_set_min_distance(s, 16.0f * 3.0f); // 3 tiles
+			ma_sound_set_min_distance(s, 16.0f * 1.0f); // 1 tile - sound at full volume
 			ma_sound_set_max_distance(s, (float)host->maxHearDistance);
+			ma_sound_set_rolloff(s, 1.1f);
 			ma_sound_set_volume(s, volume);
 			ma_sound_start(s);
 			return;
