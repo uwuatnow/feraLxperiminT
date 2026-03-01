@@ -17,8 +17,7 @@ static std::vector<float> left_buffer;
 static std::vector<float> right_buffer;
 static float flc_last_left = 0.0f;
 static float flc_last_right = 0.0f;
-float flc_basestep = 0.26f;
-int flc_recon_steps = 12;
+float flc_basestep = 0.55f;
 
 static void flc_node_process(ma_node* pNode, const float** ppFramesIn, ma_uint32* pFrameCountIn, float** ppFramesOut, ma_uint32* pFrameCountOut)
 {
@@ -56,8 +55,8 @@ static void flc_node_process(ma_node* pNode, const float** ppFramesIn, ma_uint32
 
     int fadeBytes = 255;
     if (channels >= 1) {
-        auto [q, bands] = flc_left.flc_compress(left_buffer, basestep);
-        auto recon = flc_recon_steps != 12 ? flc_left.progressive_recon(flc_recon_steps, q, bands, basestep) : flc_left.flc_decompress(q, bands, basestep);
+        auto [q, bands, scale] = flc_left.compress(left_buffer, basestep);
+        auto recon = flc_left.decompress(q, bands, basestep, scale);
 
         if (!recon.empty()) {
             float diff = flc_last_left - recon[0];
@@ -77,8 +76,8 @@ static void flc_node_process(ma_node* pNode, const float** ppFramesIn, ma_uint32
     }
 
     if (channels >= 2) {
-        auto [q, bands] = flc_right.flc_compress(right_buffer, basestep);
-        auto recon = flc_recon_steps != 12 ? flc_right.progressive_recon(flc_recon_steps, q, bands, basestep) : flc_right.flc_decompress(q, bands, basestep);
+        auto [q, bands, scale] = flc_right.compress(right_buffer, basestep);
+        auto recon = flc_right.decompress(q, bands, basestep, scale);
 
         if (!recon.empty()) {
             float diff = flc_last_right - recon[0];

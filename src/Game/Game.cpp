@@ -42,73 +42,9 @@
 #include <cassert>
 #include "Mission/DevTestMission.h"
 #include "Shader/TVStaticShader.h"
-// #include "Thonk/FLC.h"
-
-// #define M_PI 3.14159265358979323846
-// static void testFLCLibrary()
-// {
-//     std::cout << "=== FLC Library Test (lossy) ===" << std::endl;
-
-//     // Create FLC instance
-//     flc::FLC flc;
-
-//     // Create test data - a simple sine wave pattern
-//     const int dataSize = 1024;
-//     std::vector<float> originalData(dataSize);
-
-//     // Generate test data: sine wave with some noise
-//     for (int i = 0; i < dataSize; ++i) {
-//         float t = static_cast<float>(i) / dataSize;
-//         originalData[i] = sin(t * 2.0 * M_PI) + 0.1 * sin(t * 20.0 * M_PI);
-//     }
-
-//     std::cout << "Original data size: " << dataSize << " floats (" << dataSize * sizeof(float) << " bytes)" << std::endl;
-
-//     // Test Fibonacci binary compression
-//     std::vector<uint8_t> compressedBytes = flc.compress_to_fib_binary(originalData, 1.0f);
-
-//     // Calculate compressed size
-//     size_t compressedSize = compressedBytes.size();
-//     std::cout << "Compressed data size: " << compressedSize << " bytes" << std::endl;
-
-//     // Calculate compression ratio
-//     float compressionRatio = static_cast<float>(dataSize * sizeof(float)) / compressedSize;
-//     std::cout << "Compression ratio: " << compressionRatio << ":1" << std::endl;
-
-//     // Test decompression
-//     std::vector<float> decompressedData = flc.decompress_from_fib_binary(compressedBytes);
-
-//     float maxError = 0.0f;
-//     float totalError = 0.0f;
-
-//     for (size_t i = 0; i < originalData.size(); ++i) {
-//         float error = std::abs(originalData[i] - decompressedData[i]);
-//         maxError = std::max(maxError, error);
-//         totalError += error;
-//     }
-
-//     std::cout << "Max error: " << maxError << std::endl;
-//     std::cout << "Average error: " << (totalError / dataSize) << std::endl;
-
-//     // Test DCT/IDCT round trip without quantization
-//     std::vector<float> dct_coeffs = flc.dct(originalData);
-//     std::vector<float> reconstructed = flc.idct(dct_coeffs);
-
-//     float max_idct_error = 0.0f;
-//     float total_idct_error = 0.0f;
-//     for (size_t i = 0; i < originalData.size(); ++i) {
-//         float error = std::abs(originalData[i] - reconstructed[i]);
-//         max_idct_error = std::max(max_idct_error, error);
-//         total_idct_error += error;
-//     }
-//     std::cout << "DCT/IDCT round trip - Max error: " << max_idct_error << ", Average error: " << (total_idct_error / dataSize) << std::endl;
-
-//     std::cout << "=== FLC Test Complete ===" << std::endl << std::endl;
-// }
 
 int main()
 {
-    //testFLCLibrary();
     nyaa::Util::PrintLnFormat("|starting nyaa engine 2026|");
     nyaa::Game g{};
     return 0;
