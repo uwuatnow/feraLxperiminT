@@ -19,7 +19,7 @@ SelectionPrompt::SelectionPrompt(float rectLeft, float rectTop, float rectWidth,
 	,rectWidth(rectWidth)
 	,rectHeight(rectHeight)
 	,selectedIndex(0)
-	,vertical(true)
+	,vertical(vertical)
 	,upFail(false)
 	,scrollOffset(0.0f)
 	,scrollStartY(0.0f)
@@ -36,14 +36,14 @@ SelectionPrompt::~SelectionPrompt()
 
 SelectionPrompt::Selection& SelectionPrompt::add(std::string text, SPCallback cb, bool enabled) 
 {
+	Selection* prev = selections.size() > 0 ? &selections.back() : nullptr;
 	selections.emplace_back(*this, text, enabled);
 	Selection& s = selections.back();
 	s.callback = cb;
 	s.index = selections.size() - 1;
 	s.update(false);
-	Selection* back = selections.size() > 0 ? &selections.back() : nullptr;
-	s.bef = back;
-	if (back) back->next = &s;
+	s.bef = prev;
+	if (prev) prev->next = &s;
 	return s;
 }
 
@@ -143,8 +143,9 @@ void SelectionPrompt::update(bool focus)
 
 		sf::Vector2i mpos = sf::Vector2i{ Mouse::Pos_X, Mouse::Pos_Y };
 		unsigned int i = 0;
-		for (auto it = selections.begin(); it != selections.end(); ++it)
+		for (auto it = selections.begin(); it != selections.end(); )
 		{
+			auto itNext = std::next(it);
 			bool bleft = left;
 			bool bright = right;
 			auto&s=*it;
@@ -196,6 +197,7 @@ void SelectionPrompt::update(bool focus)
 					if (sr != SelPResp_Neutral) {
 						s.animTimer.zero();
 						Sfx::CursorSel->play();
+						return; // Avoid iterator invalidation if callback cleared selections
 					}
 				}
 				else if (right && s.callback)
@@ -204,6 +206,7 @@ void SelectionPrompt::update(bool focus)
 					if (sr != SelPResp_Neutral) {
 						s.animTimer.zero();
 						Sfx::CursorSel->play();
+						return; // Avoid iterator invalidation
 					}
 				}
 				else if (((Kb::IsKeyFirstFrame(KB::Return) || Kb::IsKeyFirstFrame(KB::E)) || (Mouse::LeftRel && hovd && og)
@@ -221,7 +224,7 @@ void SelectionPrompt::update(bool focus)
 						{
 							s.animTimer.zero();
 							Sfx::CursorSel->play();
-							break;
+							return; // Avoid iterator invalidation
 						}
 						}
 					}
@@ -234,6 +237,7 @@ void SelectionPrompt::update(bool focus)
 				right = bright;
 			}
 			i++;
+			it = itNext;
 		}
 	}
 }
@@ -444,6 +448,8 @@ SelectionPrompt::Selection::Selection(SelectionPrompt& host, std::string ttext, 
 {
 	text.setOutlineThickness(3);
 	text.setOutlineColor(sf::Color{outlineColorR, outlineColorG, outlineColorB});
+	valText.setFont(*Fonts::MainFont);
+	valText.setCharacterSize(30);
 	auto b = text.getLocalBounds();
 	text.setOrigin(sf::Vector2f(b.width / 2, b.height / 2));
 }

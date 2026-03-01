@@ -286,6 +286,8 @@ Game::Game()
 	doLoop();
 }
 
+
+
 Game::~Game()
 {
 // #if DEBUG
@@ -322,6 +324,10 @@ Game::~Game()
 
 void Game::ReallocInGameScreen()
 {
+	bool isCur = (Screen::CurrentScreen == IGS);
+	bool isTo = (Screen::ToScreen == IGS);
+	bool isLast = (Screen::LastScreen == IGS);
+
 	if(IGS)
 	{
 		delete IGS;
@@ -331,7 +337,21 @@ void Game::ReallocInGameScreen()
 	sheets.clear();
 #endif
 	Shader::Shaders.clear();
+	
+	// Reset GUI pointers as well to avoid dangling pointers during reallocation
+	guip = nullptr;
+	guip_eof = nullptr;
+	guip_eof_LMB_FF = nullptr;
+	guip_eof_RMB_FF = nullptr;
+	guip_eof_MMB_FF = nullptr;
+	guip_selected = nullptr;
+
 	IGS = new InGameScreen(selectedSaveSlot);
+
+	if (isCur) Screen::CurrentScreen = IGS;
+	if (isTo) Screen::ToScreen = IGS;
+	if (isLast) Screen::LastScreen = IGS;
+
 	if(PCScreen::Instance)
 		PCScreen::Instance->accessedFrom = nullptr;
 }
