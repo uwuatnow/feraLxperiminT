@@ -33,6 +33,9 @@ public:
 	static float rsX;
 	static float rsY;
 
+	//left trigger (LT) - used for aiming/locking player in place
+	static float lt;
+
 	static std::map<Btn, float> HeldMillis; //controller button milliseconds held for
 	static std::map<Btn, unsigned int> BtnFrames; //amount of frames a controller button was held for
 	static std::map<Btn, bool> BtnRel; //true if controller button was released

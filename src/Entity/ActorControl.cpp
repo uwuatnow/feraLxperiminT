@@ -3,9 +3,11 @@
 #include "Screen/InGameScreen.h"
 #include "Game/Kb.h"
 #include "Game/Mouse.h"
+#include "Game/Controller.h"
 #include <SFML/Window/Joystick.hpp>
 #include "Inventory/Inventory.h"
 #include "Inventory/Item.h"
+#include "Inventory/Gun.h"
 #include "Game/Util.h"
 #include "Map/Map.h"
 
@@ -33,6 +35,24 @@ float Actor::control()
 	if (IGS->dbox.showing || !G->winFocused || !isControllable)
 	{
 		return 0.0f;
+	}
+
+	// Check if player is aiming with left trigger while holding a gun
+	// This locks the player in place for better aiming
+	bool isAiming = false;
+	if (this == IGS->player && inv && inv->equippedItem)
+	{
+		// Check if equipped item is a Gun using dynamic_cast
+		Gun* gun = dynamic_cast<Gun*>(inv->equippedItem);
+		if (gun)
+		{
+			// Left trigger (LT) is on axis Z - typically ranges 0 to -100 when pressed
+			// We check if it's being pressed (less than -10 to avoid noise)
+			if (Controller::lt < -10.0f)
+			{
+				isAiming = true;
+			}
+		}
 	}
 
 	float dt = G->frameDeltaMillis / 1000.0f;
@@ -72,7 +92,7 @@ float Actor::control()
 	{
 		joyY = 0;
 	}
-	auto joyTotal = std::fabs(joyX + joyY);
+	auto joyTotal = std::sqrt(joyX * joyX + joyY * joyY);
 
 	unsigned int all = up + down + left + right;
 
@@ -150,6 +170,16 @@ float Actor::control()
 		}
 	}
 
+	// If player is aiming, lock them in place (disable movement)
+	// This allows firing the weapon while stationary
+	if (isAiming)
+	{
+		// Clear the animating flag to prevent movement
+		flags &= ~EntFlag_Animating;
+		// Zero out movement amount at the source
+		moveAccelTimer->zero();
+	}
+	
 	if (std::fabs(dirAngle - oldDirAngle) == 180.0f) {
 		float intermediateAngle = std::fmod(oldDirAngle - 90.0f + 360.0f, 360.0f);
 		visualDir = Util::DirFromAngle(intermediateAngle);

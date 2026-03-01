@@ -725,6 +725,7 @@ void Game::doLoop()
 		Controller::dpy = sf::Joystick::getAxisPosition(G->joystickIndex, sf::Joystick::Axis::PovY);
 		Controller::rsX = sf::Joystick::getAxisPosition(G->joystickIndex, sf::Joystick::Axis::U);
 		Controller::rsY = sf::Joystick::getAxisPosition(G->joystickIndex, sf::Joystick::Axis::V);
+		Controller::lt = sf::Joystick::getAxisPosition(G->joystickIndex, sf::Joystick::Axis::Z);
 		if(Controller::dpx != 0)
 		{
 			Controller::dpxFrames++;
