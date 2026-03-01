@@ -586,8 +586,20 @@ else if(G->inMethod == InputMethod_Controller)
 					float joyX = sf::Joystick::getAxisPosition(ji, sf::Joystick::Axis::X);
 					float joyY = sf::Joystick::getAxisPosition(ji, sf::Joystick::Axis::Y);
 					auto deadzone = 15.f;
-					if (std::fabs(joyX) < deadzone) joyX = 0;
-					if (std::fabs(joyY) < deadzone) joyY = 0;
+					auto joyMag = std::sqrt(joyX * joyX + joyY * joyY);
+					if (joyMag < deadzone)
+					{
+						joyX = 0;
+						joyY = 0;
+					}
+					else
+					{
+						// Rescale to be smooth from the deadzone edge
+						float normalizedMag = (joyMag - deadzone) / (100.f - deadzone);
+						normalizedMag = std::max(0.0f, std::min(1.0f, normalizedMag));
+						joyX = (joyX / joyMag) * normalizedMag * 100.f;
+						joyY = (joyY / joyMag) * normalizedMag * 100.f;
+					}
 
 					if (joyX != 0 || joyY != 0) {
 						// Calculate stick angle (in degrees, 0 = right, 90 = down, 180 = left, 270 = up)

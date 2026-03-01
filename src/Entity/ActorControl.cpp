@@ -84,13 +84,20 @@ float Actor::control()
 	float joyX = sf::Joystick::getAxisPosition(ji, sf::Joystick::Axis::X);
 	float joyY = sf::Joystick::getAxisPosition(ji, sf::Joystick::Axis::Y);
 	auto deadzone = 30.f;
-	if (std::fabs(joyX) < deadzone)
+	auto joyMag = std::sqrt(joyX * joyX + joyY * joyY);
+	if (joyMag < deadzone)
 	{
 		joyX = 0;
-	}
-	if (std::fabs(joyY) < deadzone)
-	{
 		joyY = 0;
+	}
+	else
+	{
+		// Rescale to be smooth from the deadzone edge
+		float normalizedMag = (joyMag - deadzone) / (100.f - deadzone);
+		// Clamp to ensure it doesn't exceed 1.0 if the hardware reported value is slightly over 100
+		normalizedMag = std::max(0.0f, std::min(1.0f, normalizedMag));
+		joyX = (joyX / joyMag) * normalizedMag * 100.f;
+		joyY = (joyY / joyMag) * normalizedMag * 100.f;
 	}
 	auto joyTotal = std::sqrt(joyX * joyX + joyY * joyY);
 
