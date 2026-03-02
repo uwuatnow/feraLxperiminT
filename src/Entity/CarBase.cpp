@@ -19,8 +19,8 @@
 #include "Game/FMRadio.h"
 #include "Inventory/Inventory.h"
 #include "Game/OBB.h"
-#include "Inventory/GasCan.h"
 #include "Entity/BuildingWallEntity.h"
+#include "Map/New3DRenderer.h"
 
 namespace nyaa {
 
@@ -607,6 +607,10 @@ else if(G->inMethod == InputMethod_Controller)
 						
 						// Normalize stick angle to 0-360
 						if (stickAngle < 0) stickAngle += 360.0f;
+						
+						float yaw = 0.0f;
+						if (New3DRenderer* r = dynamic_cast<New3DRenderer*>(IGS->renderer)) yaw = r->m_camera.getYaw();
+						stickAngle = std::fmod(stickAngle - yaw + 360.0f, 360.0f);
 						
 						// Calculate stick magnitude (how far the stick is pushed)
 						float stickMagnitude = std::sqrt(joyX * joyX + joyY * joyY) / 100.0f;

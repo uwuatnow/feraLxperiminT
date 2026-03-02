@@ -29,6 +29,8 @@ public:
     float getZoom() const { return camZoom; }
     void setZoom(float zoom) { camZoom = zoom; }
 
+    float getYaw() const { return cameraYaw; }
+
     float getOffsetX() const { return offsetX; }
     float getOffsetY() const { return offsetY; }
     
@@ -60,6 +62,7 @@ private:
     float targetCameraDistance;
     float currentCameraDistance;
     float cameraHeight;
+    float cameraYaw;
     float lastCamZoom;
     float camZoom;
     float zoomFactor;

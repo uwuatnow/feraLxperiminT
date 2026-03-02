@@ -161,6 +161,8 @@ public:
 	class Timer* visualTurnTimer;
 	Direction visualTurnTarget;
 
+	Direction getApparentVisualDir(float cameraYaw) const;
+
 public:
     class ActorWellbeing* wellbeing;
 };

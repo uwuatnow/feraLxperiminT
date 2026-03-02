@@ -8,8 +8,10 @@
 #include "Inventory/Inventory.h"
 #include "Inventory/Item.h"
 #include "Inventory/Gun.h"
+#include "Inventory/Gun.h"
 #include "Game/Util.h"
 #include "Map/Map.h"
+#include "Map/New3DRenderer.h"
 
 namespace nyaa {
 
@@ -166,6 +168,13 @@ float Actor::control()
 		{
 			dirAngle = 45;
 		}
+
+		if (up || down || left || right)
+		{
+			float yaw = 0.0f;
+			if (New3DRenderer* r = dynamic_cast<New3DRenderer*>(IGS->renderer)) yaw = r->m_camera.getYaw();
+			dirAngle = std::fmod(dirAngle - yaw + 360.0f, 360.0f);
+		}
 	}
 	else if (G->inMethod == InputMethod_Controller)
 	{
@@ -173,7 +182,9 @@ float Actor::control()
 		if (joyTotal > 0)
 		{
 			flags |= EntFlag_Animating;
-			dirAngle = angle;
+			float yaw = 0.0f;
+			if (New3DRenderer* r = dynamic_cast<New3DRenderer*>(IGS->renderer)) yaw = r->m_camera.getYaw();
+			dirAngle = std::fmod(angle - yaw + 360.0f, 360.0f);
 		}
 	}
 

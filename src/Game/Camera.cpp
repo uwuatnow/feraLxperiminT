@@ -22,6 +22,7 @@ Camera::Camera()
     ,targetCameraDistance(25.0)
     ,currentCameraDistance(25.0)
     ,cameraHeight(25.0)
+    ,cameraYaw(0.0f)
     ,lastCamZoom(1.0f)
     ,camZoom(1.0f)
     ,zoomFactor(0.0)
@@ -55,6 +56,18 @@ void Camera::update(float deltaTime)
     // Handle zoom factor
     zoomFactor = (IGS->camZoom - 1.0f) / 9.0f; // Normalize zoom to 0-1 range (camZoom 1-10)
     zoomFactor = std::max(0.0f, std::min(zoomFactor, 1.0f));
+
+    // Update camera yaw from right stick X
+    float yawSpeed = 120.0f; // degrees per second
+    float rx = Controller::rsX;
+    float deadzone = 20.0f;
+    if (std::abs(rx) > deadzone) {
+        float normalizedRx = (std::abs(rx) - deadzone) / (100.0f - deadzone);
+        if (rx < 0) normalizedRx = -normalizedRx;
+        cameraYaw += normalizedRx * yawSpeed * deltaTime;
+        if (cameraYaw < 0.0f) cameraYaw += 360.0f;
+        if (cameraYaw >= 360.0f) cameraYaw -= 360.0f;
+    }
 
     bool playerInCar = (IGS->player->carImInsideOf != nullptr);
     CarBase* car = IGS->player->carImInsideOf;
@@ -311,25 +324,28 @@ void Camera::use(sf::RenderTarget& target, float verticalOffset)
         lookAtY = (2.0f - zoomFactor * 2.0f) - (speedFactor * 1.5f) + reversingFactor;
     }
 
+    float yawRad = Util::ToRad(cameraYaw);
+    
     // We use Camera-Relative Rendering to avoid precision loss at large world coordinates.
     // The GPU origin (0,0,0) is set to the camera's world position.
-    double eyeX = 0;
-    double eyeY = cameraHeight + verticalOffset;
-    double eyeZ = currentCameraDistance;
     
-    double centerX = horizontalLookAtOffset;
+    double centerX = horizontalLookAtOffset * std::cos(yawRad);
     double centerY = lookAtY + verticalOffset;
-    double centerZ = 0;
+    double centerZ = horizontalLookAtOffset * std::sin(yawRad);
+
+    double eyeX = centerX + std::sin(yawRad) * currentCameraDistance;
+    double eyeY = cameraHeight + verticalOffset;
+    double eyeZ = centerZ + std::cos(yawRad) * currentCameraDistance;
 
     gluLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, 0, 1, 0);
     
     // Cache absolute positions for basis/audio which still need them
-    eyePos.x = cX;
+    eyePos.x = cX + eyeX; // absolute eye pos
     eyePos.y = eyeY;
-    eyePos.z = cZ + currentCameraDistance;
-    laX = cX + horizontalLookAtOffset;
+    eyePos.z = cZ + eyeZ;
+    laX = cX + centerX; // absolute look at pos
     laY = centerY;
-    laZ = cZ;
+    laZ = cZ + centerZ;
 
     updateBasis(target);
 

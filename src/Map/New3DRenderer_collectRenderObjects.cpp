@@ -35,7 +35,7 @@ void New3DRenderer::renderObjects(Map* map, RendTarget& target)
     // Collect all renderable objects (obstacles and entities) for depth sorting
     struct RenderObject {
         enum Type { OBSTACLE, ENTITY } type;
-        double sortY; // Y coordinate for sorting
+        double sortDistSq; // Distance squared from camera
         
         // For obstacles (relative to camera origin)
         float relX, relZ;
@@ -44,7 +44,7 @@ void New3DRenderer::renderObjects(Map* map, RendTarget& target)
         // For entities
         Entity* entity;
         
-        RenderObject(Type t, double y) : type(t), sortY(y), entity(nullptr) {}
+        RenderObject(Type t, double d) : type(t), sortDistSq(d), entity(nullptr) {}
     };
     
     double camWorldX = m_camera.getX() / 16.0;
@@ -61,11 +61,17 @@ void New3DRenderer::renderObjects(Map* map, RendTarget& target)
             for (unsigned int x = 0; x < MapChunk::SizeTiles; ++x) {
                 auto& obstacleTile = c->getTILE(x, y, 1);
                 if (obstacleTile.id != 0) {
-                    double worldZ = chunkZ + (double)y * (double)tileSize;
-                    double pixelY = (worldZ + (double)tileSize) * 16.0;
-                    RenderObject obj(RenderObject::OBSTACLE, pixelY);
+                    double worldX = chunkX + ((double)x + 0.5) * (double)tileSize;
+                    double worldZ = chunkZ + ((double)y + 0.5) * (double)tileSize;
+                    double worldY = 0.5 * (double)tileSize;
+                    
+                    double dx = worldX - m_camera.getEyePos().x;
+                    double dy = worldY - m_camera.getEyePos().y;
+                    double dz = worldZ - m_camera.getEyePos().z;
+                    
+                    RenderObject obj(RenderObject::OBSTACLE, dx*dx + dy*dy + dz*dz);
                     obj.relX = (float)(chunkX + (double)x * (double)tileSize - camWorldX);
-                    obj.relZ = (float)(worldZ - camWorldZ);
+                    obj.relZ = (float)(chunkZ + (double)y * (double)tileSize - camWorldZ);
                     obj.tileId = obstacleTile.id;
                     renderObjects.push_back(obj);
                 }
@@ -75,14 +81,22 @@ void New3DRenderer::renderObjects(Map* map, RendTarget& target)
     
     // Collect entities
     for (auto& entity : map->entities) {
-        RenderObject obj(RenderObject::ENTITY, entity->posY - entity->posZ);
+        double ex = entity->posX / 16.0;
+        double ey = entity->posZ / 16.0; // height
+        double ez = entity->posY / 16.0; // depth
+        
+        double dx = ex - m_camera.getEyePos().x;
+        double dy = ey - m_camera.getEyePos().y;
+        double dz = ez - m_camera.getEyePos().z;
+        
+        RenderObject obj(RenderObject::ENTITY, dx*dx + dy*dy + dz*dz);
         obj.entity = entity;
         renderObjects.push_back(obj);
     }
     
-    // Sort by Y coordinate (lower Y renders first)
+    // Sort by distance (furthest renders first)
     std::sort(renderObjects.begin(), renderObjects.end(), [](const RenderObject& a, const RenderObject& b) {
-        return a.sortY < b.sortY;
+        return a.sortDistSq > b.sortDistSq;
     });
     
     // Render sorted objects
@@ -456,7 +470,8 @@ void New3DRenderer::renderObjects(Map* map, RendTarget& target)
                         // Determine row and flip based on direction (matching WalkAnim logic)
                         unsigned int row = 0;
                         bool flip = false;
-                        switch (actor->visualDir) {
+                        Direction apparentDir = actor->getApparentVisualDir(m_camera.getYaw());
+                        switch (apparentDir) {
                         case Direction_Up: row = 0; break;
                         case Direction_Down: row = 1; break;
                         case Direction_Left: row = 2; break;
@@ -490,12 +505,18 @@ void New3DRenderer::renderObjects(Map* map, RendTarget& target)
                         // Set normal facing slightly up and towards camera for billboard sprites
                         glNormal3f(0.0f, 0.5f, 0.866f);
                         
+                        glPushMatrix();
+                        glTranslatef(entityX, 0, entityZ);
+                        glRotatef(m_camera.getYaw(), 0, 1, 0);
+
                         glBegin(GL_QUADS);
-                        glTexCoord2f(u1, v2); glVertex3f(entityX + offsetX, offsetY, entityZ);
-                        glTexCoord2f(u2, v2); glVertex3f(entityX + offsetX + width, offsetY, entityZ);
-                        glTexCoord2f(u2, v1); glVertex3f(entityX + offsetX + width, offsetY + height, entityZ);
-                        glTexCoord2f(u1, v1); glVertex3f(entityX + offsetX, offsetY + height, entityZ);
+                        glTexCoord2f(u1, v2); glVertex3f(offsetX, offsetY, 0);
+                        glTexCoord2f(u2, v2); glVertex3f(offsetX + width, offsetY, 0);
+                        glTexCoord2f(u2, v1); glVertex3f(offsetX + width, offsetY + height, 0);
+                        glTexCoord2f(u1, v1); glVertex3f(offsetX, offsetY + height, 0);
                         glEnd();
+
+                        glPopMatrix();
                     }
                 };
                 
@@ -721,12 +742,19 @@ void New3DRenderer::renderObjects(Map* map, RendTarget& target)
                     
                     // Use entityZ for props (already has 8 pixel offset like actors)
                     glNormal3f(0.0f, 0.5f, 0.866f); // Billboards face camera
+                    
+                    glPushMatrix();
+                    glTranslatef(entityX, 0, entityZ);
+                    glRotatef(m_camera.getYaw(), 0, 1, 0);
+
                     glBegin(GL_QUADS);
-                    glTexCoord2f(u1, v2); glVertex3f(entityX + offsetX, offsetY, entityZ);
-                    glTexCoord2f(u2, v2); glVertex3f(entityX + offsetX + width, offsetY, entityZ);
-                    glTexCoord2f(u2, v1); glVertex3f(entityX + offsetX + width, offsetY + height, entityZ);
-                    glTexCoord2f(u1, v1); glVertex3f(entityX + offsetX, offsetY + height, entityZ);
+                    glTexCoord2f(u1, v2); glVertex3f(offsetX, offsetY, 0);
+                    glTexCoord2f(u2, v2); glVertex3f(offsetX + width, offsetY, 0);
+                    glTexCoord2f(u2, v1); glVertex3f(offsetX + width, offsetY + height, 0);
+                    glTexCoord2f(u1, v1); glVertex3f(offsetX, offsetY + height, 0);
                     glEnd();
+
+                    glPopMatrix();
                 }
             }
             else if (/*BulletProjectile* bullet = */dynamic_cast<BulletProjectile*>(entity))
@@ -739,6 +767,7 @@ void New3DRenderer::renderObjects(Map* map, RendTarget& target)
                 
                 glPushMatrix();
                 glTranslatef(entityX, 0.5f, entityZ);
+                glRotatef(m_camera.getYaw(), 0, 1, 0);
                 
                 // Simple quad billboard for bullet
                 glBegin(GL_QUADS);
@@ -931,26 +960,32 @@ void New3DRenderer::renderDebugTextAboveActors(Map* map, RendTarget& target)
             float halfWidth = billboardSize * 0.5f * aspect;
             float halfHeight = billboardSize * 0.5f;
             
+            glPushMatrix();
+            glTranslatef(textWorldX, textWorldY, textWorldZ);
+            glRotatef(m_camera.getYaw(), 0, 1, 0);
+
             // Draw the billboard quad
             glBegin(GL_QUADS);
             
             // Bottom-left
             glTexCoord2f(0.0f, 0.0f);
-            glVertex3f(textWorldX - halfWidth, textWorldY - halfHeight, textWorldZ);
+            glVertex3f(-halfWidth, -halfHeight, 0);
             
             // Bottom-right
             glTexCoord2f(1.0f, 0.0f);
-            glVertex3f(textWorldX + halfWidth, textWorldY - halfHeight, textWorldZ);
+            glVertex3f(halfWidth, -halfHeight, 0);
             
             // Top-right
             glTexCoord2f(1.0f, 1.0f);
-            glVertex3f(textWorldX + halfWidth, textWorldY + halfHeight, textWorldZ);
+            glVertex3f(halfWidth, halfHeight, 0);
             
             // Top-left
             glTexCoord2f(0.0f, 1.0f);
-            glVertex3f(textWorldX - halfWidth, textWorldY + halfHeight, textWorldZ);
+            glVertex3f(-halfWidth, halfHeight, 0);
             
             glEnd();
+            
+            glPopMatrix();
         }
     }
     

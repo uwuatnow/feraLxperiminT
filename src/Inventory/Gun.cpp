@@ -103,7 +103,7 @@ void Gun::shootBullet()
 		BulletProjectile* bp = new BulletProjectile(frontPosX, frontPosY, bulletAngle, getDamage());
 		bp->shooter = a;
 		a->hostMap->addEnt(bp);
-		Sfx::Shoot->play(a->posX, a->posY);
+		Sfx::Shoot->play(a->posX, a->posY, a->posZ + a->sizeZ * 0.9); // Pass height at ear level
 		recoilT.reset();
 	}
 }

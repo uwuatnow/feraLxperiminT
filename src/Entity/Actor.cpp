@@ -140,4 +140,11 @@ OBB* Actor::getOBB() const
 	return m_OBB;
 }
 
+Direction Actor::getApparentVisualDir(float cameraYaw) const
+{
+	double visualAngle = Util::AngleFromDir(visualDir);
+	double relativeAngle = std::fmod(visualAngle + cameraYaw, 360.0);
+	return Util::DirFromAngle(relativeAngle);
+}
+
 } // namespace nyaa
