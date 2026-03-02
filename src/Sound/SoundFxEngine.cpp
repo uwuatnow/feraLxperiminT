@@ -17,7 +17,7 @@ static std::vector<float> left_buffer;
 static std::vector<float> right_buffer;
 static float flc_last_left = 0.0f;
 static float flc_last_right = 0.0f;
-float flc_basestep = 0.55f;
+float flc_basestep = 0.47f;
 
 static void flc_node_process(ma_node* pNode, const float** ppFramesIn, ma_uint32* pFrameCountIn, float** ppFramesOut, ma_uint32* pFrameCountOut)
 {

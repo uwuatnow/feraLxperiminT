@@ -22,8 +22,8 @@ public:
 		void play(bool noSpam = false, float volume = 1.0f); //at player pos
 
 		void play(float x, float y, bool noSpam = false, float volume = 1.0f); //at world pos x,y
-
-		void play(double x, double y, bool noSpam = false, float volume = 1.0f); //at world pos x,y
+		void play(double x, double y, bool noSpam = false, float volume = 1.0f); //at world pos x,y (z defaults to 0)
+		void play(double x, double y, double z, bool noSpam = false, float volume = 1.0f); //at world pos x,y,z
 
 		void stop();
 

@@ -344,13 +344,13 @@ void Camera::use(sf::RenderTarget& target, float verticalOffset)
 
     if (IGS && IGS->player) {
         listenerX = IGS->player->posX;
-        listenerY = IGS->player->posZ + (IGS->player->sizeZ * 0.9); // Position at ear level
-        listenerZ = IGS->player->posY;
-
+        listenerY = IGS->player->posZ + (IGS->player->sizeZ * 0.9); // Vertical height (game Z = vertical)
+        listenerZ = IGS->player->posY; // Depth (game Y = depth)
+    
         if (playerInCar && car) {
             listenerX = car->posX;
-            listenerY = car->posZ + (car->roofHeight * 0.8); // Slightly below roof when sitting
-            listenerZ = car->posY;
+            listenerY = car->posZ + (car->roofHeight * 0.8); // Vertical height
+            listenerZ = car->posY; // Depth
         }
     }
 
