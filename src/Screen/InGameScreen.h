@@ -10,6 +10,7 @@
 #include "Game/Timer.h"
 //#include "Entity/Entity.h"
 #include "Map/RainDrop.h"
+#include "Map/ParticleSystem.h"
 #include "Texture/TextureMan.h"
 #include <thread>
 #include <atomic>
@@ -178,6 +179,7 @@ public:
 	sf::VertexArray RainVA;
 	std::vector<RainDrop> RainDrops;
 	Timer RainDropT;
+	ParticleSystem particleSystem;
 	class Sheet* carSheet;
 
 	std::string stats;

@@ -9,6 +9,7 @@
 #include "Game/Sfx.h"
 #include "Game/Timer.h"
 #include "Game/OBB.h"
+#include "Map/ParticleSystem.h"
 
 namespace nyaa {
 
@@ -88,8 +89,14 @@ void BulletProjectile::update()
 		
 		flags |= EntFlag_Dead;
 		Sfx::WallHit->play((float)posX, (float)posY);
+		
+		// Emit particle effects on entity hit
+		if (IGS) {
+		    IGS->particleSystem.emitSparks((float)posX, (float)posY, (float)posZ);
+		}
+		
 		return;
-	}
+}
 
 	// 2. Check for wall collisions
 	auto collidedLine = checkCollide(hostMap->collLines, (float)mo, dirAngle, (float)mo + BulletProjectile::BulletRadius, nullptr);
@@ -115,11 +122,16 @@ void BulletProjectile::update()
 				dirAngle = (float)(newAngle + (r - 0.5) * 60.0);
 			}
 		}
-		else 
+		else
 		{
-			flags |= EntFlag_Dead;
+		    flags |= EntFlag_Dead;
+		    
+		    // Emit particle effects on wall hit
+		    if (IGS) {
+		        IGS->particleSystem.emitSparks((float)posX, (float)posY, (float)posZ);
+		    }
 		}
-	}
+}
 	else 
 	{
 		// No collisions: commit movement

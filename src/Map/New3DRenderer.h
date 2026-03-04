@@ -82,6 +82,7 @@ private:
     void renderActorShadows(class Map* map, RendTarget& target);
     void renderBuildings(class Map* map, RendTarget& target);
     void renderRain3D();
+    void renderParticles3D();
     void updateLighting(class Map* map);
     
     // Mouse raycasting and normal vector rendering

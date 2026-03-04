@@ -448,8 +448,12 @@ void InGameScreen::doTick(RendTarget* renderTarget)
 			}
 			d.y += (8 + (1.0 * (d.dirHoriz / 4))) * spdm;
 			d.x += (d.dirHoriz * 2) * spdm;
-		}
-		RainVA.clear();
+}
+
+// Update particle system
+particleSystem.update(G->frameDeltaMillis / 1000.0f);
+
+RainVA.clear();
 		for (auto& d : RainDrops)
 		{
 			auto tc = sf::Vector2f{};

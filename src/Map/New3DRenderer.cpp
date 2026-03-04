@@ -176,6 +176,7 @@ void New3DRenderer::render(Map* map, RendTarget& target)
     renderCeilingTiles(map, target);
 
     renderRain3D();
+    renderParticles3D();
 
     // Update mouse raycasting for normal vectors
     updateMouseRaycast(map, target);
