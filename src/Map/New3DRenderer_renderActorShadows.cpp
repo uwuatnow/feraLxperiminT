@@ -47,7 +47,7 @@ void New3DRenderer::renderActorShadows(Map* map, RendTarget& target)
             float jumpHeight = (float)(actor->posZ / 16.0); // posZ in pixels, convert to world
             
             // Base radius of the foot shadow circle
-            float baseRadius = width * 0.35f;
+            float baseRadius = width * 0.175f;
             
             // Shrink radius as actor goes higher (min 20% of base at max jump)
             float radiusScale = 1.0f / (1.0f + jumpHeight * 2.0f);
@@ -78,7 +78,7 @@ void New3DRenderer::renderActorShadows(Map* map, RendTarget& target)
             for (int s = 0; s <= segments; ++s) {
                 float angle = s * 3.14159f * 2.0f / (float)segments;
                 float cx = std::cos(angle) * radius;
-                float cz = std::sin(angle) * radius * 0.5f; // Squish Z for perspective
+                float cz = std::sin(angle) * radius; // Circle shape
                 glTexCoord2f(0.5f + std::cos(angle) * 0.5f, 0.5f + std::sin(angle) * 0.5f);
                 glVertex3f(centerX + offsetX + cx, groundY, centerZ + offsetZ + cz);
             }
