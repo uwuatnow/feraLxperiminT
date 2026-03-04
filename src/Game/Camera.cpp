@@ -57,20 +57,49 @@ void Camera::update(float deltaTime)
     zoomFactor = (IGS->camZoom - 1.0f) / 9.0f; // Normalize zoom to 0-1 range (camZoom 1-10)
     zoomFactor = std::max(0.0f, std::min(zoomFactor, 1.0f));
 
+    bool playerInCar = (IGS->player->carImInsideOf != nullptr);
+    CarBase* car = IGS->player->carImInsideOf;
+
     // Update camera yaw from right stick X
     float yawSpeed = 120.0f; // degrees per second
-    float rx = Controller::rsX;
+    float rx = -Controller::rsX;
     float deadzone = 20.0f;
+    float deltaYaw = 0.0f;
     if (std::abs(rx) > deadzone) {
         float normalizedRx = (std::abs(rx) - deadzone) / (100.0f - deadzone);
         if (rx < 0) normalizedRx = -normalizedRx;
-        cameraYaw += normalizedRx * yawSpeed * deltaTime;
+        deltaYaw = normalizedRx * yawSpeed * deltaTime;
+        cameraYaw += deltaYaw;
         if (cameraYaw < 0.0f) cameraYaw += 360.0f;
         if (cameraYaw >= 360.0f) cameraYaw -= 360.0f;
     }
 
-    bool playerInCar = (IGS->player->carImInsideOf != nullptr);
-    CarBase* car = IGS->player->carImInsideOf;
+    if (deltaYaw != 0.0f) {
+        double effectivePlayerX = IGS->player->posX;
+        double effectivePlayerY = IGS->player->posY;
+        if (playerInCar) {
+            effectivePlayerX = car->posX;
+            effectivePlayerY = car->posY;
+        }
+
+        double dx = posX - effectivePlayerX;
+        double dy = posY - effectivePlayerY;
+        double rad = Util::ToRad(deltaYaw);
+        double cosDelta = std::cos(rad);
+        double sinDelta = std::sin(rad);
+
+        posX = effectivePlayerX + (dx * cosDelta + dy * sinDelta);
+        posY = effectivePlayerY + (-dx * sinDelta + dy * cosDelta);
+        cameraTargetPosX = posX;
+        cameraTargetPosY = posY;
+
+        if (playerInCar) {
+            double cdx = carCameraSmoothX - effectivePlayerX;
+            double cdy = carCameraSmoothY - effectivePlayerY;
+            carCameraSmoothX = effectivePlayerX + (cdx * cosDelta + cdy * sinDelta);
+            carCameraSmoothY = effectivePlayerY + (-cdx * sinDelta + cdy * cosDelta);
+        }
+    }
 
     if (IGS->initialCam) {
         double effectivePlayerX = IGS->player->posX;
