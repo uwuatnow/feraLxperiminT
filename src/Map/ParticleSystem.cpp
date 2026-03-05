@@ -48,7 +48,7 @@ void ParticleSystem::initSparkParticle(Particle* p, float x, float y, float z, f
     float angle = (float)Util::RandNormalized() * 360.0f;
     float elevation = (float)Util::RandNormalized() * 60.0f - 30.0f;  // -30 to +30 degrees
     
-    float vel = (0.5f + (float)Util::RandNormalized() * 1.5f) * speed;
+    float vel = (10.0f + (float)Util::RandNormalized() * 40.0f) * speed;
     
     // Convert to 3D velocity
     float radAngle = angle * 3.14159f / 180.0f;
@@ -56,13 +56,13 @@ void ParticleSystem::initSparkParticle(Particle* p, float x, float y, float z, f
     
     p->vx = cosf(radAngle) * cosf(radElev) * vel;
     p->vy = sinf(radAngle) * cosf(radElev) * vel;
-    p->vz = sinf(radElev) * vel + 0.5f;  // Slight upward bias
+    p->vz = sinf(radElev) * vel + 10.0f;  // Stronger upward bias
 
-    p->size = 0.1f + (float)Util::RandNormalized() * 0.15f;
+    p->size = 0.4f + (float)Util::RandNormalized() * 0.6f; // Larger particles
     p->rotation = (float)Util::RandNormalized() * 360.0f;
     p->rotationSpeed = (float)Util::RandNormalized() * 180.0f - 90.0f;
     
-    p->lifetime = 0.3f + (float)Util::RandNormalized() * 0.4f;
+    p->lifetime = 0.8f + (float)Util::RandNormalized() * 1.2f; // Longer lifetime
     p->maxLifetime = p->lifetime;
     
     // Orange/yellow spark colors
@@ -131,7 +131,7 @@ void ParticleSystem::update(float deltaTime)
         p.z += p.vz * deltaTime;
         
         // Apply gravity
-        p.vz -= 2.0f * deltaTime;
+        p.vz -= 30.0f * deltaTime; // Stronger gravity for faster particles
         
         // Update rotation
         p.rotation += p.rotationSpeed * deltaTime;

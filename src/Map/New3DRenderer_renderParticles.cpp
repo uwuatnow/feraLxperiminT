@@ -2,6 +2,7 @@
 #include "Screen/InGameScreen.h"
 #include "Game/Game.h"
 #include "Texture/Sheet.h"
+#include "Shader/New3DMainShader.h"
 #include <SFML/OpenGL.hpp>
 
 namespace nyaa {
@@ -13,6 +14,11 @@ void New3DRenderer::renderParticles3D()
     ParticleSystem& ps = IGS->particleSystem;
     int particleCount = ps.getParticleCount();
     if (particleCount == 0) return;
+
+    if (m_new3DMainShader) {
+        m_new3DMainShader->setFullbright(true);
+        m_new3DMainShader->update();
+    }
 
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, whiteTexture);
@@ -37,32 +43,32 @@ void New3DRenderer::renderParticles3D()
 
     const Particle* particles = ps.getParticles();
 
-    for (int i = 0; i < particleCount; ++i)
+    for (int i = 0; i < ParticleSystem::MaxParticles; ++i)
     {
         const Particle& p = particles[i];
         if (!p.active) continue;
 
         // Convert world position to camera-relative coordinates (like roads do)
         float worldX = (float)(p.x / 16.0 - camWorldX);
-        float worldY = (float)p.z;  // z is height
+        float worldY = (float)(p.z / 16.0);  // z is height
         float worldZ = (float)(p.y / 16.0 - camWorldZ);  // y is depth in the game
 
         float halfSize = p.size * 0.5f;
 
-        // Create billboard quad using camera vectors (no rotation for now)
-        float x1 = worldX - rightX * halfSize;
+        // Create billboard quad using camera vectors
+        float x1 = worldX - rightX * halfSize - upX * halfSize;
         float y1 = worldY - rightY * halfSize - upY * halfSize;
         float z1 = worldZ - rightZ * halfSize - upZ * halfSize;
-
-        float x2 = worldX + rightX * halfSize;
+        
+        float x2 = worldX + rightX * halfSize - upX * halfSize;
         float y2 = worldY + rightY * halfSize - upY * halfSize;
         float z2 = worldZ + rightZ * halfSize - upZ * halfSize;
-
-        float x3 = worldX + rightX * halfSize;
+        
+        float x3 = worldX + rightX * halfSize + upX * halfSize;
         float y3 = worldY + rightY * halfSize + upY * halfSize;
         float z3 = worldZ + rightZ * halfSize + upZ * halfSize;
-
-        float x4 = worldX - rightX * halfSize;
+        
+        float x4 = worldX - rightX * halfSize + upX * halfSize;
         float y4 = worldY - rightY * halfSize + upY * halfSize;
         float z4 = worldZ - rightZ * halfSize + upZ * halfSize;
 
@@ -80,6 +86,11 @@ void New3DRenderer::renderParticles3D()
         glTexCoord2f(1.0f, 0.0f); glVertex3f(x3, y3, z3);
         glTexCoord2f(0.0f, 0.0f); glVertex3f(x4, y4, z4);
         glEnd();
+    }
+
+    if (m_new3DMainShader) {
+        m_new3DMainShader->setFullbright(false);
+        m_new3DMainShader->update();
     }
 
     glEnable(GL_DEPTH_TEST);

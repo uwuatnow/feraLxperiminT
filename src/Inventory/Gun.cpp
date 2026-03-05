@@ -132,6 +132,7 @@ void Gun::shootBullet()
 	if (!a->hostMap->doesLineIntersectCollisionLine(frontPosX, frontPosY, a->posX, a->posY))
 	{
 		BulletProjectile* bp = new BulletProjectile(frontPosX, frontPosY, bulletAngle, getDamage());
+		bp->posZ = a->posZ + a->sizeZ * 0.9;
 		bp->shooter = a;
 		a->hostMap->addEnt(bp);
 		Sfx::Shoot->play(a->posX, a->posY, a->posZ + a->sizeZ * 0.9); // Pass height at ear level
