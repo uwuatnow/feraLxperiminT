@@ -86,12 +86,43 @@ void Gun::shootBullet()
 #endif
 	if (!invervalTimer.once(getFireRate())) return;
 	
-	// Use the raw gun angle without modifying it
-	float bulletAngle = fmodf(gunAngle, 360);
+	// Use the current actor direction as the base for the bullet angle
+	float bulletAngle = fmodf(a->dirAngle, 360);
+
 	double bulletX, bulletY;
 	a->getHandPos(bulletX, bulletY);
-	sf::Vector2f bulletOrigin(bulletX, bulletY);
+	sf::Vector2f bulletOrigin((float)bulletX, (float)bulletY);
 	bulletOrigin.x -= 2;
+
+	// Aim Assist for controller
+	if (a == IGS->player && G->inMethod == InputMethod_Controller)
+	{
+		Actor* bestTarget = nullptr;
+		double bestDiff = 18.0; // 10% tolerance (36 total, +/- 18)
+
+		for (Entity* e : a->hostMap->getEntities())
+		{
+			Actor* targetActor = dynamic_cast<Actor*>(e);
+			if (targetActor && targetActor != a && !(targetActor->flags & EntFlag_Dead))
+			{
+				// Aim from the actual bullet origin to the target's center (posY - 4.0)
+				double angleToTarget = (float)Util::RotateTowards(bulletOrigin.x, bulletOrigin.y, targetActor->posX, targetActor->posY - 4.0);
+				double diff = std::abs(Util::AngleDifference(bulletAngle, angleToTarget));
+				if (diff < bestDiff)
+				{
+					bestDiff = diff;
+					bestTarget = targetActor;
+				}
+			}
+		}
+
+		if (bestTarget)
+		{
+			bulletAngle = (float)Util::RotateTowards(bulletOrigin.x, bulletOrigin.y, bestTarget->posX, bestTarget->posY - 4.0);
+			// Update the actor's direction so the gun visually snaps to the target
+			a->dirAngle = bulletAngle;
+		}
+	}
 
 	// Calculate the spawn position offset based on the actual firing angle
 	double frontPosX = 0, frontPosY = 0;
@@ -110,7 +141,16 @@ void Gun::shootBullet()
 
 void Gun::equippedUpdate()
 {
-	inv->owner->dirAngle = gunAngle;
+	// For controller, the actor's direction (from stick input or aim assist) is the source of truth
+	if (inv->owner == IGS->player && G->inMethod == InputMethod_Controller)
+	{
+		gunAngle = inv->owner->dirAngle;
+	}
+	else
+	{
+		inv->owner->dirAngle = gunAngle;
+	}
+
 	invervalTimer.update();
 	recoilT.update();
 	if (recoilT.secs() > 0.1) recoilT.setMillis(100);

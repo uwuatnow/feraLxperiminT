@@ -160,6 +160,9 @@ public:
 	Direction visualDir;
 	class Timer* visualTurnTimer;
 	Direction visualTurnTarget;
+	
+	bool isAiming;
+	float isAimingSmooth;
 
 	Direction getApparentVisualDir(float cameraYaw) const;
 

@@ -74,6 +74,17 @@ void Camera::update(float deltaTime)
         if (cameraYaw >= 360.0f) cameraYaw -= 360.0f;
     }
 
+    // Automatically rotate camera to player's back when aiming
+    if (IGS->player->isAimingSmooth > 0.1f) {
+        float f = IGS->player->isAimingSmooth;
+        float targetYaw = std::fmod(270.0f - IGS->player->dirAngle + 360.0f, 360.0f); // Correctly mapped behind player yaw
+        float diff = std::fmod((targetYaw - cameraYaw + 540.0f), 360.0f) - 180.0f;
+        cameraYaw += diff * f * 0.12f;
+        
+        if (cameraYaw < 0.0f) cameraYaw += 360.0f;
+        if (cameraYaw >= 360.0f) cameraYaw -= 360.0f;
+    }
+
     if (deltaYaw != 0.0f) {
         double effectivePlayerX = IGS->player->posX;
         double effectivePlayerY = IGS->player->posY;
@@ -168,8 +179,15 @@ void Camera::update(float deltaTime)
         carCameraHeightSmooth += carCameraHeightVel * (double)deltaTime;
         cameraHeight = carCameraHeightSmooth;
     } else {
-        targetDistance = 25.0f - zoomFactor * 22.0f;
-        targetHeight = 25.0f - zoomFactor * 22.0f;
+        float normalDist = 25.0f - zoomFactor * 22.0f;
+        float normalHeight = 25.0f - zoomFactor * 22.0f;
+        
+        float aimFactor = IGS->player->isAimingSmooth;
+        float aimingDist = 12.0f; // Constant aiming distance
+        float aimingHeight = 4.0f; // Constant aiming height
+        
+        targetDistance = normalDist * (1.0f - aimFactor) + aimingDist * aimFactor;
+        targetHeight = normalHeight * (1.0f - aimFactor) + aimingHeight * aimFactor;
         
         currentCameraDistance += (targetDistance - currentCameraDistance) * (double)lerpSpeed;
         cameraHeight += (targetHeight - cameraHeight) * (double)lerpSpeed;
@@ -182,6 +200,7 @@ void Camera::update(float deltaTime)
     // Follow logic
     double effectivePlayerX = IGS->player->posX;
     double effectivePlayerY = IGS->player->posY;
+
     if (playerInCar) {
         effectivePlayerX = car->posX;
         effectivePlayerY = car->posY;
@@ -344,6 +363,15 @@ void Camera::use(sf::RenderTarget& target, float verticalOffset)
 
     lookAtY = 2.0f - zoomFactor * 2.0f;
 
+    double aimingLookSideOffset = 0.0;
+    double aimingForwardPan = 0.0;
+    if (IGS && IGS->player && IGS->player->isAimingSmooth > 0.01f) {
+        float f = IGS->player->isAimingSmooth;
+        lookAtY -= (float)f * 1.5f;
+        aimingLookSideOffset = (double)f * -1.2; // Shoulder offset
+        aimingForwardPan = (double)f * 8.0;      // Focus further ahead
+    }
+
     if (playerInCar) {
         float carSpeed = std::sqrt(car->velX * car->velX + car->velY * car->velY);
         float speedFactor = std::min(carSpeed / 200.0f, 1.0f);
@@ -358,9 +386,13 @@ void Camera::use(sf::RenderTarget& target, float verticalOffset)
     // We use Camera-Relative Rendering to avoid precision loss at large world coordinates.
     // The GPU origin (0,0,0) is set to the camera's world position.
     
-    double centerX = horizontalLookAtOffset * std::cos(yawRad);
+    double totalSideOffset = horizontalLookAtOffset + aimingLookSideOffset;
+    double panX = -std::sin(yawRad) * aimingForwardPan;
+    double panZ = -std::cos(yawRad) * aimingForwardPan;
+
+    double centerX = totalSideOffset * std::cos(yawRad) + panX;
     double centerY = lookAtY + verticalOffset;
-    double centerZ = horizontalLookAtOffset * std::sin(yawRad);
+    double centerZ = totalSideOffset * std::sin(yawRad) + panZ;
 
     double eyeX = centerX + std::sin(yawRad) * currentCameraDistance;
     double eyeY = cameraHeight + verticalOffset;

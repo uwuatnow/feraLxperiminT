@@ -41,7 +41,7 @@ float Actor::control()
 
 	// Check if player is aiming with left trigger while holding a gun
 	// This locks the player in place for better aiming
-	bool isAiming = false;
+	bool isAimingState = false;
 	if (this == IGS->player && inv && inv->equippedItem)
 	{
 		// Check if equipped item is a Gun using dynamic_cast
@@ -52,12 +52,19 @@ float Actor::control()
 			// We check if it's being pressed (less than -10 to avoid noise)
 			if (Controller::lt < -10.0f)
 			{
-				isAiming = true;
+				isAimingState = true;
 			}
 		}
 	}
 
 	float dt = G->frameDeltaMillis / 1000.0f;
+
+	// Update aiming flags
+	this->isAiming = isAimingState;
+	float targetAim = isAimingState ? 1.0f : 0.0f;
+	isAimingSmooth += (targetAim - isAimingSmooth) * std::min(1.0f, 20.0f * dt);
+	
+	bool isAiming = this->isAiming; // Keep local isAiming for the rest of the function
 
 	bool wasAnim = (flags & EntFlag_Animating);
 	flags &= ~EntFlag_Animating;
@@ -178,13 +185,32 @@ float Actor::control()
 	}
 	else if (G->inMethod == InputMethod_Controller)
 	{
-		float angle = Util::RotateTowards(0, 0, joyX, joyY);
-		if (joyTotal > 0)
+		if (isAimingState)
 		{
-			flags |= EntFlag_Animating;
-			float yaw = 0.0f;
-			if (New3DRenderer* r = dynamic_cast<New3DRenderer*>(IGS->renderer)) yaw = r->m_camera.getYaw();
-			dirAngle = std::fmod(angle - yaw + 360.0f, 360.0f);
+			// Relative aiming control for more precision when locked in place
+			// We use the lateral movement stick (X axis) to rotate the player slowly
+			float sensitivity = 150.0f; // degrees per second
+			float deadzone = 20.0f;
+			if (std::abs(joyX) > deadzone)
+			{
+				float normalizedJoyX = (std::abs(joyX) - deadzone) / (100.0f - deadzone);
+				if (joyX < 0) normalizedJoyX = -normalizedJoyX;
+				
+				// Apply rotation. Rotation is relative to the world, but since the camera 
+				// is currently following the player's back, it feels like horizontal aiming.
+				dirAngle = std::fmod(dirAngle + normalizedJoyX * sensitivity * dt + 360.0f, 360.0f);
+			}
+		}
+		else
+		{
+			float angle = Util::RotateTowards(0, 0, joyX, joyY);
+			if (joyTotal > 0)
+			{
+				flags |= EntFlag_Animating;
+				float yaw = 0.0f;
+				if (New3DRenderer* r = dynamic_cast<New3DRenderer*>(IGS->renderer)) yaw = r->m_camera.getYaw();
+				dirAngle = std::fmod(angle - yaw + 360.0f, 360.0f);
+			}
 		}
 	}
 

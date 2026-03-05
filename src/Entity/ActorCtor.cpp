@@ -75,6 +75,8 @@ Actor::Actor(
 	,isSnappingBack(false)
 	,snapBackTargetX(0.0)
 	,snapBackTargetY(0.0)
+	,isAiming(false)
+	,isAimingSmooth(0.0f)
 	,wellbeing(new ActorWellbeing())
 {
 	friction = 0.23f;

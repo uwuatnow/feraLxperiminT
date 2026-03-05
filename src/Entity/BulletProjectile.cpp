@@ -73,9 +73,21 @@ void BulletProjectile::update()
 		// Process entity hit
 		hitEnt->hurt((float)damage, DamageReason_Violence, shooter);
 		
-		// If it's an actor, turn it towards the shooter
+		// If it's an actor, turn it towards the impact (NPCs turn completely, player only slightly)
 		if (auto actor = dynamic_cast<Actor*>(hitEnt)) {
-			actor->turnTowards(this);
+			if (actor == IGS->player) {
+				// Player only gets a slight aim nudge from hits instead of a full turn
+				double impactAngle = Util::RotateTowards(actor->posX, actor->posY, posX, posY);
+				double diff = impactAngle - actor->dirAngle;
+				while (diff < -180) diff += 360;
+				while (diff > 180) diff -= 360;
+				
+				// Nudge by at most 5 degrees towards the impact
+				double nudge = Util::Clamp(diff, -5.0, 5.0);
+				actor->dirAngle = (float)std::fmod(actor->dirAngle + nudge + 360.0, 360.0);
+			} else {
+				actor->turnTowards(this);
+			}
 			Sfx::Hurt->play((float)hitEnt->posX, (float)hitEnt->posY);
 		}
 

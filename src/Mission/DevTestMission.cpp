@@ -6,6 +6,7 @@
 #include "Entity/DevCar.h"
 #include "Entity/DealerCatgirl.h"
 #include "Entity/Computer.h"
+#include "Entity/Catgirl.h"
 #include "Inventory/Gun.h"
 #include "Inventory/GasCan.h"
 
@@ -25,7 +26,7 @@ void DevTestMission::init()
 	auto dev_test_map = IGS->mapFactory->get("dev_test");
 	Actor* ca = IGS->player;
 	ca->gotoMapInstant("dev_test");
-	ca->setPosTile(10, 2);
+	ca->setPosTile(-1, 4);
 	ca->dirAngle = 90;
 	Door* door = new Door();
 	door->setPosTile(10, 4);
@@ -80,6 +81,18 @@ void DevTestMission::init()
 	Computer* computer = new Computer();
 	computer->setPosTile(5, 5);
 	dev_test_map->addEnt(computer, true);
+
+	// Spawn 10 wandering npcs near -40x, -25y with 20 wander distance
+	for(int i = 0; i < 10; ++i)
+	{
+		Catgirl* npc = new Catgirl();
+		npc->setPosTile(-40 + (i % 5)* 2, -25 + (i / 5)* 2);
+		dev_test_map->addEnt(npc, true);
+		npc->isHomeWandering = true;
+		npc->homePointX = npc->posX;
+		npc->homePointY = npc->posY;
+		npc->homeWalkRange = 320.0f; // 20 tiles * 16 pixels/tile
+	}
 }
 
 }
