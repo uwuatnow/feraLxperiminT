@@ -17,7 +17,7 @@ float BulletProjectile::BulletRadius = 0.5f;
 
 BulletProjectile::BulletProjectile(double posX, double posY, float dirAngle, int damage)
 	:collideLimit(3) //can hit 3 walls before deleting itself
-	,speed(3.0f)
+	,speed(38.0f)
 	,shooter(nullptr)
 	,deleteT(new Timer())
 	,damage(damage)
