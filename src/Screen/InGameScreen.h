@@ -290,6 +290,10 @@ public:
 	class SelectionPrompt* deathPrompt;
 	class GameClock* gameClock;
 	
+	// Death effect system
+	float deathTimer; // Tracks seconds player has been dead, reset to 0 on death
+	sf::RectangleShape deathWhiteRect; // White rectangle for death fade effect
+	
 	bool playerAutoWalking;
 	double playerAutoWalkToPosX, playerAutoWalkToPosY;
 	

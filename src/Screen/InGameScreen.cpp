@@ -125,7 +125,8 @@ void InGameScreen::doTick(RendTarget* renderTarget)
 	float distFromCam = Util::Dist(camCenterPos.x, camCenterPos.y, cap.x, cap.y);
 
 	// Handle smooth delayed camera following for auto walk path
-	if (cameraFollowingPath && !cameraPathPoints.empty())
+	// Skip when player is dead (death effect takes over)
+	if (cameraFollowingPath && !cameraPathPoints.empty() && !(player->flags & Entity::EntFlag_Dead))
 	{
 		// Use the player's next node for camera positioning
 		if (player->astn && player->ast && player->ast->valid())
@@ -158,9 +159,10 @@ void InGameScreen::doTick(RendTarget* renderTarget)
 		double moveY = (double)cameraVelocityY * (double)G->frameDeltaMillis * 0.01;
 		worldView.move((float)moveX, (float)moveY);
 	}
-	else
+	else if (!(player->flags & Entity::EntFlag_Dead))
 	{
 		// Normal camera following (original logic) - use double precision for stability at large distances
+		// Skip camera following when player is dead (death effect takes over)
 		if (distFromCam > moveDist)
 		{
 			double xdist = effectivePlayerX - camCenterPos.x;
@@ -1729,9 +1731,31 @@ RainVA.clear();
 		renderTarget->draw(mft);
 	}
 
+	// Death effect: update death timer and camera transform
+	// (moved after normal camera following to prevent override)
 	if (player->flags & Entity::EntFlag_Dead)
 	{
-		sf::Text pdt(std::string("") + (missionFailedTextShown ? "killed in action.." : "you died"), *Fonts::OSDFont, 50);
+		// Update death timer (tracks seconds player has been dead)
+		deathTimer += G->frameDeltaMillis / 1000.0f;
+	
+		// Transform camera upward based on death time
+		// Move camera up in the world (decrease Y)
+		float cameraLiftAmount = (float)deathTimer * 200.0f; // 200 pixels per second for more visible effect
+		sf::Vector2f camCenter = worldView.getCenter();
+		float newY = camCenter.y - cameraLiftAmount;
+		worldView.setCenter(camCenter.x, newY);
+	
+		// Update white rectangle fade (fade in over 4 seconds from 0 to 255 opacity)
+		float fadeDuration = 4.0f;
+		float fadeProgress = deathTimer / fadeDuration;
+		if (fadeProgress > 1.0f) fadeProgress = 1.0f;
+		sf::Uint8 whiteAlpha = (sf::Uint8)(255 * fadeProgress);
+		deathWhiteRect.setFillColor(sf::Color(255, 255, 255, whiteAlpha));
+		
+		// Draw white rectangle (behind "you died" text)
+		renderTarget->draw(deathWhiteRect);
+		
+	sf::Text pdt(std::string("") + (missionFailedTextShown ? "killed in action.." : "you died"), *Fonts::OSDFont, 50);
 		auto lb = pdt.getLocalBounds();
 		pdt.setOrigin(lb.width / 2, lb.height);
 		pdt.setPosition(Game::ScreenWidth / 2, Game::ScreenHeight / 2);

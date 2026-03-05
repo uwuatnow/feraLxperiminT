@@ -232,11 +232,16 @@ void Actor::update()
 
 	if (health <= 0)
 	{
-		flags |= EntFlag_Dead;
-		if (IGS->curMission->onActorDeath(this))
-		{
-			IGS->curMission->fail();
-		}
+	flags |= EntFlag_Dead;
+	if (this == IGS->player)
+	{
+	// Reset death timer when player dies
+	IGS->deathTimer = 0.0f;
+	}
+	if (IGS->curMission->onActorDeath(this))
+	{
+	IGS->curMission->fail();
+	}
 	}
 
 	//hitBox = FloatRect(Vector2f(pos.x - 3, pos.y - 10), Vector2f(6, 8));

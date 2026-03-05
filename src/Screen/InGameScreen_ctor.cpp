@@ -243,6 +243,8 @@ InGameScreen::InGameScreen(int saveDataSlot)
 		100
 	))
 	,gameClock(new GameClock())
+	,deathTimer(0.0f)
+	,deathWhiteRect(sf::RectangleShape(sf::Vector2f((float)Game::ScreenWidth, (float)Game::ScreenHeight)))
 	,playerAutoWalking(false)
 	,playerAutoWalkToPosX(0.0f)
 	,playerAutoWalkToPosY(0.0f)
@@ -284,7 +286,11 @@ InGameScreen::InGameScreen(int saveDataSlot)
 	entityGuiTexSp.setTexture(entityGuiTex.getTexture(), true);
 
 	arrowDownTex = &TextureMan::tman->get("arrowDown");
-
+	
+	// Initialize death white rectangle
+	deathWhiteRect.setFillColor(sf::Color(255, 255, 255, 0));
+	deathWhiteRect.setPosition(0.0f, 0.0f);
+	
 	setSpawnInter = new Interaction(nullptr, "Set spawn point", [](Interaction* i)
 	{
 
