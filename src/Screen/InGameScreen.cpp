@@ -712,7 +712,30 @@ RainVA.clear();
 	} else {
 		renderTarget->draw(rendTexSp, activeShader);
 	}
-// #if DEBUG
+
+	// Render damage flash (red flash when player is hurt) - after world, before GUI
+	if (damageFlash.active) {
+		damageFlash.timer += G->frameDeltaMillis;
+		float progress = damageFlash.timer / damageFlash.duration;
+		if (progress >= 1.0f) {
+			damageFlash.active = false;
+			damageFlash.rect.setFillColor(sf::Color(255, 0, 0, 0));
+		} else {
+			// Fade in quickly, then fade out over 300ms
+			sf::Uint8 alpha;
+			if (progress < 0.1f) {
+				// Quick fade in to full intensity
+				alpha = (sf::Uint8)(255 * (progress / 0.1f));
+			} else {
+				// Fade out
+				alpha = (sf::Uint8)(255 * (1.0f - progress));
+			}
+			damageFlash.rect.setFillColor(sf::Color(255, 0, 0, alpha));
+			renderTarget->draw(damageFlash.rect);
+		}
+	}
+
+	// #if DEBUG
 // 	sf::Text cornerText("3NgNn3 #4 2021->*now*", *Fonts::MonoFont, 11);
 // 	cornerText.setFillColor(sf::Color::Red);
 // 	cornerText.setOutlineColor(sf::Color::White);

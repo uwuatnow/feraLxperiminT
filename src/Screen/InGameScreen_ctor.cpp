@@ -53,6 +53,11 @@ InGameScreen::ColoredDebugRect::ColoredDebugRect(float rectLeft, float rectTop, 
 }
 #endif
 
+InGameScreen::DamageFlash::DamageFlash() {
+	rect.setSize(sf::Vector2f((float)Game::ScreenWidth, (float)Game::ScreenHeight));
+	rect.setFillColor(sf::Color(255, 0, 0, 0));
+}
+
 InGameScreen::~InGameScreen()
 {
 	std::cout << "Destroying IGS" << std::endl;

@@ -293,6 +293,15 @@ public:
 	// Death effect system
 	float deathTimer; // Tracks seconds player has been dead, reset to 0 on death
 	sf::RectangleShape deathWhiteRect; // White rectangle for death fade effect
+
+	// Damage flash system - red flash when player is hurt
+	struct DamageFlash {
+		bool active = false;
+		float timer = 0.0f;
+		float duration = 300.0f; // 300ms fade duration
+		sf::RectangleShape rect;
+		DamageFlash();
+	} damageFlash;
 	
 	bool playerAutoWalking;
 	double playerAutoWalkToPosX, playerAutoWalkToPosY;

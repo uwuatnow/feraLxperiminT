@@ -80,6 +80,11 @@ void Actor::hurt(float amount, DamageReason damageReason, Entity* damageSource)
 	health = Util::Clamp(health, 0, HealthEnergyBasedMax);
 	this->damageReason = damageReason;
 	if(damageSource) this->damageSource = damageSource;
+
+	if (IGS && this == IGS->player) {
+		IGS->damageFlash.active = true;
+		IGS->damageFlash.timer = 0.0f;
+	}
 }
 
 void Actor::healCompletely()
